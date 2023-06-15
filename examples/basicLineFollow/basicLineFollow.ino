@@ -1,12 +1,12 @@
-#include "src/driveController/TurnSteeringDriveController.hpp"
-#include "src/driveController/FixedWheelDriveController.hpp"
-#include "src/motors/MotorDcHBridge.hpp"
-#include "src/motors/PolyCurveMotorProfile.hpp"
-#include "src/lineDetector/LinearSensorEdgeDetector.hpp"
-#include "src/lineDetector/brightnessSensor/BrightnessSensorAnalog.hpp"
-#include "src/distanceSensor/UltrasonicDistanceSensor.hpp"
+#include <driveController/TurnSteeringDriveController.hpp>
+#include <driveController/FixedWheelDriveController.hpp>
+#include <motors/MotorDcHBridge.hpp>
+#include <motors/PolyCurveMotorProfile.hpp>
+#include <lineDetector/LinearSensorEdgeDetector.hpp>
+#include <lineDetector/brightnessSensor/BrightnessSensorAnalog.hpp>
+#include <distanceSensor/UltrasonicDistanceSensor.hpp>
+#include <motors/ServoAxle.hpp>
 #include "lineFollowing.hpp"
-#include "src/motors/ServoAxle.hpp"
 #include "Servo.h"
 #include "Arduino.h"
 
