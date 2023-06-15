@@ -1,11 +1,4 @@
-#include <driveController/TurnSteeringDriveController.hpp>
-#include <driveController/FixedWheelDriveController.hpp>
-#include <motors/MotorDcHBridge.hpp>
-#include <motors/PolyCurveMotorProfile.hpp>
-#include <lineDetector/LinearSensorEdgeDetector.hpp>
-#include <lineDetector/brightnessSensor/BrightnessSensorAnalog.hpp>
-#include <distanceSensor/UltrasonicDistanceSensor.hpp>
-#include <motors/ServoAxle.hpp>
+#include <Sofdcar-HAL.hpp>
 #include "lineFollowing.hpp"
 #include "Servo.h"
 #include "Arduino.h"
