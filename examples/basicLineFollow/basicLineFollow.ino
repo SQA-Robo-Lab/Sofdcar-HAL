@@ -48,10 +48,10 @@ BrightnessThresholds thresholds[] = {
     {741, 95},
     {340, 53}};
 
-MotorDcHBridge frontLeft(MOTOR_SPEED_UNIT_RPM, 2, 3, 4);
-MotorDcHBridge frontRight(MOTOR_SPEED_UNIT_RPM, 7, 6, 5);
-MotorDcHBridge rearLeft(MOTOR_SPEED_UNIT_RPM, 8, 9, 10);
-MotorDcHBridge rearRight(MOTOR_SPEED_UNIT_RPM, 13, 12, 11);
+MotorDcHBridge frontLeft(MOTOR_SPEED_UNIT_RPM, 2, 4, 3);
+MotorDcHBridge frontRight(MOTOR_SPEED_UNIT_RPM, 7, 5, 6);
+MotorDcHBridge rearLeft(MOTOR_SPEED_UNIT_RPM, 8, 10, 9);
+MotorDcHBridge rearRight(MOTOR_SPEED_UNIT_RPM, 13, 11, 12);
 FixedWheelDriveController dc(
     frontLeft,
     frontRight,
