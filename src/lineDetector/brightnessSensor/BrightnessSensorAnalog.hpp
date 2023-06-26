@@ -7,8 +7,8 @@ typedef float (*MappingFunction)(uint16_t oldVal);
 
 struct BrightnessThresholds
 {
-    uint16_t blackThrethold;
-    uint16_t whiteThrethold;
+    uint16_t blackThreshold;
+    uint16_t whiteThreshold;
 };
 
 class BrightnessSensorAnalog : public BrightnessSensor

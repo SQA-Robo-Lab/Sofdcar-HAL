@@ -38,7 +38,7 @@ uint8_t BrightnessSensorAnalog::getValues(float *array, uint8_t maxLen)
         }
         else if (this->thresholds != nullptr)
         {
-            resVal = floatMap(val, this->thresholds[i].blackThrethold, this->thresholds[i].whiteThrethold, 0, 1);
+            resVal = floatMap(val, this->thresholds[i].blackThreshold, this->thresholds[i].whiteThreshold, 0, 1);
         }
         else
         {
