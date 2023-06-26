@@ -27,6 +27,11 @@ LinearSensorEdgeDetector::~LinearSensorEdgeDetector()
     delete[] this->sensors;
 }
 
+void LinearSensorEdgeDetector::setFollowEdge(bool followLeftEdge)
+{
+    this->leftEdge = followLeftEdge;
+}
+
 int8_t LinearSensorEdgeDetector::getLinePositionMm()
 {
     float values[this->totalSensors];

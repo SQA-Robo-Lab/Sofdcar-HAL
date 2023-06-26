@@ -16,12 +16,14 @@ private:
     bool leftEdge;
 
 public:
-    LinearSensorEdgeDetector(BrightnessSensor &sensor, uint8_t sensorDistanceMm, bool followLeftEdge);
-    LinearSensorEdgeDetector(BrightnessSensor **multipleSensors, uint8_t numberOfSensors, uint8_t sensorDistanceMm, bool followLeftEdge);
+    LinearSensorEdgeDetector(BrightnessSensor &sensor, uint8_t sensorDistanceMm, bool followLeftEdge = true);
+    LinearSensorEdgeDetector(BrightnessSensor **multipleSensors, uint8_t numberOfSensors, uint8_t sensorDistanceMm, bool followLeftEdge = true);
     ~LinearSensorEdgeDetector();
 
     int8_t getLinePositionMm() override;
     int8_t getLineAngle() override;
+
+    void setFollowEdge(bool followLeftEdge);
 };
 
 #endif
