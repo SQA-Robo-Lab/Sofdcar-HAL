@@ -6,6 +6,88 @@ Library to abstract away the interaction with the hardware of the car and unify 
 
 ## Class diagram
 ### Simplified (Functional block diagram)
+The below diagram shows the essential building blocks of the HAL and describes their responsibility as well as listing their central functions
+#### Driving
+```mermaid
+classDiagram
+    class DriveController{
+        <<abstract>>
+
+        drive(int8_t angle, int16_t speed)
+        pause()
+        resume()
+        setSpeed(int16_t speed)
+        setAngle(int8_t angle)
+        getSpeed() int16_t
+        getAngle() int8_t 
+        loop()*
+
+    }
+
+    note for DriveController "Models the actual car consisting of multiple motorized components\n\nImplementations:\n- FixedWheelDriveController (4 fixed motorized wheels)\n- TurnSteeringDriveController (2 steered wheels, 2 motorized fixed wheels)"
+
+    class SteerableAxle {
+        <<abstract>>
+        setAngle(int8_t angle)*
+    }
+
+    note for SteerableAxle "Models an axle of the car of which the driving axis can be steered/rotated\n\nImplementations:\n- ServoAxle"
+
+    class Motor {
+        <<abstract>>
+        setProfile(MotorProfile *profile)
+        setSpeed(int32_t speed)
+        loop()
+    }
+
+    note for Motor "Abstracts the usage of any motor driving a/multiple wheel(s)\n\nImplementations:\n- MotorDcHBridge (Motor controlled by H-Bridge using 1 speed and 2 polarity pins)"
+
+    class MotorProfile {
+        <<abstract>>
+        [...]
+    }
+
+    note for MotorProfile "If used, allows correcting the hardware output of a motor\nto achieve desired rpm/speed\n\nImplementations:\n- PolyCurveMotorProfile (Lookup table based voltage correction)"
+
+    DriveController --> Motor : controls
+    DriveController --> SteerableAxle : turns
+    Motor --> MotorProfile : uses
+```
+#### Line/Lane detection
+```mermaid
+classDiagram
+    class LineDetector {
+        <<abstract>>
+        getLegacyPosition() LinePosition
+        positionToLegacy(int8_t pos, int8_t angle) LinePosition
+        getLinePositionMm() int8_t*
+        getLineAngle() int8_t*
+    }
+
+    note for LineDetector "Abstraction of detection of the line/lane the car should follow\n\Implementations:\n- LinearSensorLineDetector (Tries finding the middle of a line)\n- LinearSensorEdgeDetector (Tires finding the left/right edge of a line)"
+
+    class BrightnessSensor {
+        <<abstract>>
+        getValues(float *array, uint8_t maxLen) uint8_t*
+        numberOfSensors() uint8_t*
+    }
+
+    note for BrightnessSensor "One ore more brightness sensors in a line\ndetecting the presence or absence of a line/lane\n\nImplementations:\n- BrightnessSensorAnalog (Sensor(s) returning an analog value\ndepending on the sensed brightness)\n- BrightnessSensorDigital (Sensor(s) returning a thresholded\n digital value depending on line presence/absence)"
+
+    LineDetector --> "1..*" BrightnessSensor : reads
+```
+
+#### Distance/Object/Obstactle detection
+```mermaid
+classDiagram
+    class DistanceSensor {
+        <<abstract>>
+        getDistanceToClosestMm() uint16_t*
+        getAngleToClosest() int8_t*
+    }
+
+    note for DistanceSensor "Simple sensor detecting the distance to objects in its FOV\n\nImplementations:\n- UltrasonicDistanceSensor (Standard ultrasonic distance sensor with sound TOF)"
+```
 
 ### Full class diagrm
 #### Driving hardware abstraction
@@ -88,14 +170,14 @@ classDiagram
         #uint16_t clipRpmForward
         #uint16_t clipRpmBackward
 
-        setMaxRpmForward(uint16_t rpm)
-        setMaxRpmBackward(uint16_t rpm)
+        +setMaxRpmForward(uint16_t rpm)
+        +setMaxRpmBackward(uint16_t rpm)
 
-        rpmToRatio(int16_t rpm) int16_t*
-        getMaxPossibleRpmForward() uint16_t*
-        getMaxPossibleRpmBackward() uint16_t*
+        +rpmToRatio(int16_t rpm) int16_t*
+        +getMaxPossibleRpmForward() uint16_t*
+        +getMaxPossibleRpmBackward() uint16_t*
 
-        loop()
+        +loop()
     }
 
     class PolyCurveMotorProfile {
@@ -110,7 +192,6 @@ classDiagram
         +calculateMotorCurve(struct MotorKnownRpm points[], uint8_t len)
         +setMotorCurve(int16_t *lut, MotorCurveLutType type)
     }
-    PolyCurveMotorProfile --> "1 #type" MotorCurveLutType
 
     class MotorCurveLutType {
         <<enumeration>>
@@ -151,6 +232,7 @@ classDiagram
     TurnSteeringDriveController --> "1 -steering" SteerableAxle
     Motor --> "1 #unit" MotorSpeedUnit
     Motor --> "0..1 #profile" MotorProfile
+    PolyCurveMotorProfile --> "1 #type" MotorCurveLutType
 ```
 
 #### Line/Lane detection hardware abstraction
