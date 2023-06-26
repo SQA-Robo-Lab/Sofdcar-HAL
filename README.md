@@ -8,6 +8,7 @@ Library to abstract away the interaction with the hardware of the car and unify 
 ### Simplified (Functional block diagram)
 
 ### Full class diagrm
+#### Driving hardware abstraction
 ```mermaid
 classDiagram   
     class DriveController{
@@ -29,9 +30,7 @@ classDiagram
         #setSpeedInternal(int16_t speed)*
         #setAngleInternal(int8_t angle)*
     }
-    DriveController --> "1 #state" DriveControllerState
 
-    DriveController <|-- FixedWheelDriveController
     class FixedWheelDriveController{
         -uint8_t carWidthMm
         -uint8_t carLengthMm
@@ -41,9 +40,7 @@ classDiagram
         #setSpeedInternal(int16_t speed)
         #setAngleInternal(int8_t angle)
     }
-    FixedWheelDriveController --> "2..4 -[front/rear][Left/Right]" Motor
 
-    DriveController <|-- TurnSteeringDriveController
     class TurnSteeringDriveController{
         -uint8_t carWidthMm
         -uint8_t carLengthMm
@@ -53,8 +50,6 @@ classDiagram
         #setSpeedInternal(int16_t speed)
         #setAngleInternal(int8_t angle)
     }
-    TurnSteeringDriveController --> "2 -rear[Left/Right]" Motor
-    TurnSteeringDriveController --> "1 -steering" SteerableAxle
 
     class DriveControllerState {
         <<enumeration>>
@@ -72,8 +67,6 @@ classDiagram
 
         #setSpeedRatioInternal(int16_t speedRatio)*
     }
-    Motor --> "1 #unit" MotorSpeedUnit
-    Motor --> "0..1 #profile" MotorProfile
 
     class MotorSpeedUnit {
         <<enumeration>>
@@ -82,7 +75,6 @@ classDiagram
         MOTOR_SPEED_UNIT_CM_PER_SEC
     }
 
-    Motor <|-- MotorDcHBridge
     class MotorDcHBridge {
         -uint8_t speedPin
         -uint8_t polarityPin1
@@ -106,7 +98,6 @@ classDiagram
         loop()
     }
 
-    MotorProfile <|-- PolyCurveMotorProfile
     class PolyCurveMotorProfile {
         #int16_t *rpmLut
 
@@ -137,7 +128,6 @@ classDiagram
         setAngle(int8_t angle)*
     }
 
-    SteerableAxle <|-- ServoAxle
     class ServoAxle {
         #Servo servoInstance
         #uint8_t pin
@@ -148,4 +138,126 @@ classDiagram
         +setAngle(int8_t angle)
         +reattachServo(uint8_t servoPin)
     }
+
+    DriveController <|-- TurnSteeringDriveController
+    DriveController <|-- FixedWheelDriveController
+    Motor <|-- MotorDcHBridge
+    MotorProfile <|-- PolyCurveMotorProfile
+    SteerableAxle <|-- ServoAxle
+
+    DriveController --> "1 #state" DriveControllerState
+    FixedWheelDriveController --> "2..4 -[front/rear][Left/Right]" Motor
+    TurnSteeringDriveController --> "2 -rear[Left/Right]" Motor
+    TurnSteeringDriveController --> "1 -steering" SteerableAxle
+    Motor --> "1 #unit" MotorSpeedUnit
+    Motor --> "0..1 #profile" MotorProfile
+```
+
+#### Line/Lane detection hardware abstraction
+```mermaid
+classDiagram
+    class LineDetector {
+        <<abstract>>
+        +getLegacyPosition() LinePosition
+        +positionToLegacy(int8_t pos, int8_t angle) LinePosition
+
+        +getLinePositionMm() int8_t*
+        +getLineAngle() int8_t*
+    }
+
+    class LinePosition {
+        <<enumeration>>
+        LEFT_OF_LINE,
+        ON_LINE,
+        RIGHT_OF_LINE,
+        LINE_POSITION_UNKNOWN
+    }
+
+    class LinearSensorLineDetector {
+        -uint8_t sensorsLen
+        -uint8_t totalSensors
+        -uint8_t sensorDistance
+
+        +getLinePositionMm() int8_t
+        +getLineAngle() int8_t
+    }
+
+    class LinearSensorEdgeDetector {
+        -uint8_t sensorsLen
+        -uint8_t totalSensors
+        -uint8_t sensorDistance
+        -bool leftEdge
+
+        +getLinePositionMm() int8_t
+        +getLineAngle() int8_t
+        +setFollowEdge(bool followLeftEdge)
+    }
+
+    class BrightnessSensor {
+        <<abstract>>
+        getValues(float *array, uint8_t maxLen) uint8_t*
+        numberOfSensors() uint8_t*
+    }
+
+    class BrightnessSensorAnalog {
+        -uint8_t pinsLen
+        -uint8_t *pins
+
+        +getValues(float *array, uint8_t maxLen) uint8_t
+        +numberOfSensors() uint8_t
+        +setTranslationFunctions(MappingFunction *functions)
+        +setThresholds(BrightnessThresholds *briThretholds)
+    }
+
+    class BrightnessSensorDigital {
+        -uint8_t pinsLen
+        -uint8_t *pins
+
+        +getValues(float *array, uint8_t maxLen) uint8_t
+        +numberOfSensors() uint8_t
+    }
+
+    class BrightnessThresholds {
+        <<struct>>
+        +uint16_t blackThreshold
+        +uint16_t whiteThreshold
+    }
+
+    class MappingFunction {
+        <<function_type>>
+        +(uint16_t oldVal) float
+    }
+
+    LineDetector <|-- LinearSensorEdgeDetector
+    LineDetector <|-- LinearSensorLineDetector
+    BrightnessSensor <|-- BrightnessSensorAnalog
+    BrightnessSensor <|-- BrightnessSensorDigital
+
+    LinearSensorEdgeDetector --> "1..* -sensors" BrightnessSensor
+    LinearSensorLineDetector --> "1..* -sensors" BrightnessSensor
+    BrightnessSensorAnalog --> "0..1 -thresholds" BrightnessThresholds
+    BrightnessSensorAnalog --> "0..1 -mappingFunctions" MappingFunction
+```
+
+#### Distance/Other vehicle/obstacle hardware abstraction
+```mermaid
+classDiagram
+    class DistanceSensor {
+        <<abstract>>
+        +getDistanceToClosestMm() uint16_t*
+        +getAngleToClosest() int8_t*
+    }
+
+    class UltrasonicDistanceSensor {
+        -uint8_t trigger
+        -uint8_t echo
+        -uint16_t timeoutUs
+
+        #echoTimeToMm(unsigned long echoTimeUs) uint16_t
+
+        +getDistanceToClosestMm() uint16_t
+        +getAngleToClosest() int8_t
+    }
+
+    DistanceSensor <|-- UltrasonicDistanceSensor
 ```
