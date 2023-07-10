@@ -4,6 +4,7 @@
 #include <distanceSensor/UltrasonicDistanceSensor.hpp>
 
 #include <driveController/FixedWheelDriveController.hpp>
+#include <driveController/FixedWheelDriveControllerBoostMode.hpp>
 #include <driveController/TurnSteeringDriveController.hpp>
 
 #include <lineDetector/LinearSensorEdgeDetector.hpp>

@@ -28,6 +28,7 @@ public:
     void setSpeed(int16_t speed);
     void setAngle(int8_t angle);
     int16_t getSpeed();
+    int16_t getNonPausedSpeed();
     int8_t getAngle();
 
     virtual void loop() = 0;

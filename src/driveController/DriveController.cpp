@@ -37,6 +37,10 @@ int16_t DriveController::getSpeed()
 {
     return this->state == DRIVE_CONTROLLER_STATE_DRIVING ? this->speed : 0;
 }
+int16_t DriveController::getNonPausedSpeed()
+{
+    return this->speed;
+}
 int8_t DriveController::getAngle()
 {
     return this->angle;

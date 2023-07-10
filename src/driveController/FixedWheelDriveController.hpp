@@ -13,6 +13,7 @@ private:
     Motor &rearRight;
     uint8_t carWidthMm;
     uint8_t carLengthMm;
+    bool simpleMode = false;
 
 public:
     FixedWheelDriveController(
@@ -25,6 +26,9 @@ public:
     ~FixedWheelDriveController(){};
 
     void loop() override;
+
+    void setSimpleMode(bool on);
+    void setBoostMode(bool on);
 
 protected:
     void setSpeedInternal(int16_t speed) override;
