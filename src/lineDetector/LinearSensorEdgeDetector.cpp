@@ -1,6 +1,6 @@
 #include "LinearSensorEdgeDetector.hpp"
 
-#define LINE_SENSOR_DEBUG
+// #define LINE_SENSOR_DEBUG
 
 #define NO_SENSOR_INDEX 255
 
@@ -64,11 +64,11 @@ int8_t LinearSensorEdgeDetector::getLinePositionMm()
     uint8_t firstBlackIndex = NO_SENSOR_INDEX;
     for (uint8_t i = 0; i < this->totalSensors; i++)
     {
-        if (firstBlackIndex == NO_SENSOR_INDEX && fValues[i] >= 1)
+        if (firstBlackIndex == NO_SENSOR_INDEX && fValues[i] >= 0.9)
         {
             firstBlackIndex = i;
         }
-        if (firstNonWhite == NO_SENSOR_INDEX && fValues[i] > 0)
+        if (firstNonWhite == NO_SENSOR_INDEX && fValues[i] > 0.1)
         {
             firstNonWhite = i;
         }

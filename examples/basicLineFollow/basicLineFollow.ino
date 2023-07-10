@@ -5,6 +5,7 @@
 
 #include "WifiDebug.hpp"
 WifiDebug *debug;
+bool isManualMode = false;
 
 #if defined(ARDUINO_AVR_UNO)
 #define UNO_STEERING_CAR
@@ -49,15 +50,15 @@ UltrasonicDistanceSensor frontDistance(13, 4);
 UltrasonicDistanceSensor &rearDistance = frontDistance;
 #elif defined(MEGA_FIXED_CAR)
 BrightnessThresholds thresholds[] = {
-    {66, 45},
-    {741, 95},
-    {340, 53}};
+    {684, 97},
+    {720, 105},
+    {392, 95}};
 
 MotorDcHBridge frontLeft(MOTOR_SPEED_UNIT_CM_PER_SEC, 2, 4, 3);
 MotorDcHBridge frontRight(MOTOR_SPEED_UNIT_CM_PER_SEC, 7, 5, 6);
 MotorDcHBridge rearLeft(MOTOR_SPEED_UNIT_CM_PER_SEC, 8, 10, 9);
 MotorDcHBridge rearRight(MOTOR_SPEED_UNIT_CM_PER_SEC, 13, 11, 12);
-FixedWheelDriveController dc(
+FixedWheelDriveControllerBoostMode dc(
     frontLeft,
     frontRight,
     rearLeft,
@@ -82,10 +83,12 @@ void setup()
 #ifdef MEGA_FIXED_CAR
     frontLeft.setProfile(&profile);
     frontRight.setProfile(&profile);
+
+    dc.setSimpleMode(true);
 #endif
     Serial.begin(115200);
     Serial.println("Started");
-    dc.setSpeed(64);
+    dc.setSpeed(30);
 }
 
 void loop()
@@ -98,18 +101,23 @@ void loop()
         {
         case 'a':
             dc.setAngle(10);
+            isManualMode = true;
             break;
         case 'b':
             dc.setAngle(-10);
+            isManualMode = true;
             break;
         case 'c':
             dc.setAngle(30);
+            isManualMode = true;
             break;
         case 'd':
             dc.setAngle(-30);
+            isManualMode = true;
             break;
         case 'e':
             dc.setAngle(0);
+            isManualMode = true;
             break;
         case '5':
             dc.setSpeed(0);
@@ -138,6 +146,12 @@ void loop()
         case '1':
             dc.setSpeed(-255);
             break;
+        case '!':
+            sensor.calibrateSensors();
+            break;
+        case '-':
+            isManualMode = false;
+            break;
         }
     }
 
@@ -150,6 +164,21 @@ void loop()
     Serial.print("mm; Legacy: ");
     Serial.println(ld.positionToLegacy(pos, angle));*/
 
-    lineFollowing(dc, ld, frontDistance, rearDistance);
+    if (!isManualMode)
+    {
+        lineFollowing(dc, ld, frontDistance, rearDistance);
+    }
+    else
+    {
+        uint16_t d = frontDistance.getDistanceToClosestMm();
+        if (d < 100 && dc.getSpeed() > 0)
+        {
+            dc.pause();
+        }
+        else if ((d > 110 || dc.getNonPausedSpeed() < 0) && dc.getSpeed() == 0)
+        {
+            dc.resume();
+        }
+    }
     delay(50);
 }
