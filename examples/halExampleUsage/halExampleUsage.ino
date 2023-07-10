@@ -8,6 +8,17 @@ MotorDcHBridge simpleMotor(
     /*Polatity pin 1 (high on forward)*/ 4,
     /*Polarity pin 2 (high on reverse)*/ 3);
 
+// Motor profile to adjust behaviour of the motor speed
+// either takes measurement points and does a polynomial curve fitting
+// OR takes a lookup table that provides one rpm for every possible pwm value of the motor
+PolyCurveMotorProfile motorProfile(
+    /*Circumference of the wheel attached to the motor in cm*/ 21);
+
+// A pre-calculated motor-rpm-lookup-table stored in program memory (flash) to save on ram usage
+// Must have EXACTLY 512 elements (256 for backwards rotation from -256 to -1, 1 for 0, 255 for forwards from 1 to 255 in that order)
+// only available on AVR Microprocessors
+const PROGMEM int16_t rpmLut[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
 // Steering Servo setup
 ServoAxle steeredAxle(
     /*Servo pin (must be supported in Servo-lib)*/ 2,
@@ -81,6 +92,13 @@ UltrasonicDistanceSensor frontDistance(
 
 void setup()
 {
+    // -------------------- Motor profile initialization --------------------
+    MotorKnownRpm knownRpms[] = {{-255, -900}, {-27, 0}, {27, 0}, {255, 900}};
+    // Currently doesn't take into account, that there might a (bigger) voltage range around 0V where the speed of the motor is always 0
+    motorProfile.calculateMotorCurve(knownRpms, 4);
+    // Set the progmem allocated lookup table. It's also possible to pass a array from ram (either local or global). Change the type accordingly
+    motorProfile.setMotorCurve(const_cast<int16_t *>(rpmLut), MOTOR_CURVE_TYPE_PROGMEM);
+    simpleMotor.setProfile(&motorProfile);
 }
 
 void loop()
@@ -89,8 +107,8 @@ void loop()
     steeredDriveController.setSpeed(/*Drive speed in the speed unit of the motors, negative is backward*/ 100); // Not recommmended for stopping (temporarily)
     steeredDriveController.setAngle(/*The angle (in degrees) to turn at (minus is left, 0 is straight)*/ -10);
     steeredDriveController.drive(/*angle*/ -10, /*speed*/ 100);
-    steeredDriveController.pause(); // Stops the car but reatins the last set speed for resume
-    steeredDriveController.resue(); // If paused and last speed != 0, resumes driving at the speed before pausing
+    steeredDriveController.pause();  // Stops the car but reatins the last set speed for resume
+    steeredDriveController.resume(); // If paused and last speed != 0, resumes driving at the speed before pausing
 
     // -------------------- Detecting lanes -------------------
     edgeDetector.getLinePositionMm(); // Returns the offset of the followed lane in mm from the center (negative is left)
