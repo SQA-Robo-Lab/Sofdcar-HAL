@@ -20,6 +20,9 @@ private:
     BrightnessThresholds *thresholds = nullptr;
     MappingFunction *mappingFunctions = nullptr;
 
+    uint8_t calibrateFor(uint16_t **valuesArray, uint8_t numCaptures);
+    uint8_t getRawValues(uint16_t *array, uint8_t maxLen);
+
 public:
     BrightnessSensorAnalog(uint8_t *pinNumbers, uint8_t numberOfPins, BrightnessThresholds *briThretholds = nullptr);
     ~BrightnessSensorAnalog();
@@ -38,6 +41,13 @@ public:
      * Setting this will unset the translation functions
      */
     void setThresholds(BrightnessThresholds *briThretholds);
+
+    /**
+     * Run a (semi manual) calibration routine.
+     * Needs access to the serial console
+     */
+    void calibrateSensors();
+    void calibrateSensors(BrightnessThresholds *briThretholds);
 };
 
 #endif
