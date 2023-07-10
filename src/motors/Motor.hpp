@@ -25,6 +25,7 @@ public:
 
     void setProfile(MotorProfile *profile);
     void setSpeed(int32_t speed);
+    void setSpeed(int32_t speed, MotorSpeedUnit unit);
 
     void loop();
 

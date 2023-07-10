@@ -18,6 +18,8 @@ public:
     virtual uint16_t getMaxPossibleRpmForward() = 0;
     virtual uint16_t getMaxPossibleRpmBackward() = 0;
 
+    virtual int16_t cmpsToRatio(int16_t cmps) = 0;
+
     void setMaxRpmForward(uint16_t rpm);
     void setMaxRpmBackward(uint16_t rpm);
 

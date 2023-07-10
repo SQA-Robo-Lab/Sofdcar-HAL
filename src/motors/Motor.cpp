@@ -15,6 +15,11 @@ void Motor::setProfile(MotorProfile *profile)
 
 void Motor::setSpeed(int32_t speed)
 {
+    this->setSpeed(speed, this->unit);
+}
+
+void Motor::setSpeed(int32_t speed, MotorSpeedUnit unit)
+{
     int16_t speedRatio = 0;
     switch (this->unit)
     {
@@ -35,7 +40,20 @@ void Motor::setSpeed(int32_t speed)
         }
         break;
     case MOTOR_SPEED_UNIT_CM_PER_SEC:
-        // todo: implement translation using profile
+        if (this->profile != nullptr)
+        {
+            speedRatio = this->profile->cmpsToRatio(speed);
+#ifdef MOTOR_DEBUG
+            Serial.print("Translated cm/s ");
+            Serial.print(speed);
+            Serial.print(" into ratio ");
+            Serial.println(speedRatio);
+#endif
+        }
+        else
+        {
+            speedRatio = static_cast<int16_t>(speed);
+        }
         break;
     case MOTOR_SPEED_UNIT_RATIO:
     default:

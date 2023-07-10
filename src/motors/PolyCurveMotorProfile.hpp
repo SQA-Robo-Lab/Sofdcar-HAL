@@ -25,15 +25,18 @@ class PolyCurveMotorProfile : public MotorProfile
 protected:
     int16_t *rpmLut = nullptr;
     MotorCurveLutType rpmLutType = MOTOR_CURVE_TYPE_NONE;
+    uint8_t wheelCircumference;
 
 public:
-    PolyCurveMotorProfile();
+    PolyCurveMotorProfile(uint8_t wheelCircumferenceCm);
     ~PolyCurveMotorProfile();
 
     int16_t rpmToRatio(int16_t rpm) override;
 
     uint16_t getMaxPossibleRpmForward() override;
     uint16_t getMaxPossibleRpmBackward() override;
+
+    int16_t cmpsToRatio(int16_t cmps) override;
 
     void calculateMotorCurve(struct MotorKnownRpm points[], uint8_t len);
     void setMotorCurve(int16_t *lut, MotorCurveLutType type);

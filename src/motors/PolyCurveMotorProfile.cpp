@@ -65,7 +65,8 @@ float calculatePolynomial(float x, float *coefficients, uint8_t numCoefficients)
     }
 }
 
-PolyCurveMotorProfile::PolyCurveMotorProfile()
+PolyCurveMotorProfile::PolyCurveMotorProfile(uint8_t wheelOuterCircumference)
+    : wheelCircumference(wheelOuterCircumference)
 {
 }
 
@@ -83,6 +84,12 @@ int16_t PolyCurveMotorProfile::getLutValueAt(int16_t i)
         break;
 #endif
     }
+}
+
+int16_t PolyCurveMotorProfile::cmpsToRatio(int16_t cmps)
+{
+    float rpm = (cmps * 60.0) / this->wheelCircumference;
+    return this->rpmToRatio(rpm);
 }
 
 void PolyCurveMotorProfile::calculateMotorCurve(struct MotorKnownRpm points[], uint8_t len)
