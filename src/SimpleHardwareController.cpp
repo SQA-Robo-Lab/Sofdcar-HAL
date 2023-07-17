@@ -74,13 +74,13 @@ uint8_t SimpleHardwareController::initializeCar(FixedSteeringCarConfig fixedStee
     }
     this->initLineDetector(lineSensorConfig);
     this->numDistanceSensors = 2;
-    this->distanceSensors = new DistanceSensor[2];
+    this->distanceSensors = new DistanceSensor *[2];
     this->distanceSensors[0] = new UltrasonicDistanceSensor(fixedSteeringConfig.frontUltrasonic);
     this->distanceSensors[1] = new UltrasonicDistanceSensor(fixedSteeringConfig.rearUltrasonic);
 
     // todo: add motor profile adaptation
     this->numMotors = 4;
-    this->motors = new Motor[4];
+    this->motors = new Motor *[4];
     this->motors[0] = new MotorDcHBridge(fixedSteeringConfig.frontLeft);
     this->motors[1] = new MotorDcHBridge(fixedSteeringConfig.frontRight);
     this->motors[2] = new MotorDcHBridge(fixedSteeringConfig.rearLeft);
@@ -90,10 +90,10 @@ uint8_t SimpleHardwareController::initializeCar(FixedSteeringCarConfig fixedStee
     this->axles = nullptr;
 
     this->driveController = new FixedWheelDriveControllerBoostMode(
-        this->motors[0],
-        this->motors[1],
-        this->motors[2],
-        this->motors[3],
+        *(this->motors[0]),
+        *(this->motors[1]),
+        *(this->motors[2]),
+        *(this->motors[3]),
         fixedSteeringConfig.carWidth,
         fixedSteeringConfig.carLength);
 
@@ -111,27 +111,27 @@ uint8_t SimpleHardwareController::initializeCar(TurnSteeringCarConfig turnSteeri
     }
     this->initLineDetector(lineSensorConfig);
     this->numDistanceSensors = 2;
-    this->distanceSensors = new DistanceSensor[2];
+    this->distanceSensors = new DistanceSensor *[2];
     this->distanceSensors[0] = new UltrasonicDistanceSensor(turnSteeringConfig.frontUltrasonic);
     this->distanceSensors[1] = new UltrasonicDistanceSensor(turnSteeringConfig.rearUltrasonic);
 
     this->numMotors = 2;
-    this->motors = new Motor[2];
+    this->motors = new Motor *[2];
     this->motors[0] = new MotorDcHBridge(turnSteeringConfig.rearLeft);
     this->motors[1] = new MotorDcHBridge(turnSteeringConfig.rearRight);
 
     this->numAxles = 1;
-    this->axles = new SteerableAxle[1];
+    this->axles = new SteerableAxle *[1];
     this->axles[0] = new ServoAxle(turnSteeringConfig.steering);
 
     this->driveController = new TurnSteeringDriveController(
-        this->motors[0],
-        this->motors[1],
-        this->axles[0],
+        *(this->motors[0]),
+        *(this->motors[1]),
+        *(this->axles[0]),
         turnSteeringConfig.carWidth,
         turnSteeringConfig.carLength);
 
-    this->lineFollower = new LineFollower(this->l0ineDetector, this->driveController, this->distanceSensors[0]);
+    this->lineFollower = new LineFollower(this->lineDetector, this->driveController, this->distanceSensors[0]);
 
     this->initialized = true;
 }

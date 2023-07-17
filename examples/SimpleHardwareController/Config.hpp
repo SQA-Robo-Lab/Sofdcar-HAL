@@ -21,4 +21,6 @@ LineSensorConfig<3> lineConfig = {
      {31, 81}} // sensor thretholds
 };
 
+uint8_t desiredSpeed = 60;
+
 #endif
