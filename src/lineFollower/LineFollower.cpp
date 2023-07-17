@@ -1,6 +1,6 @@
 #include "LineFollower.hpp"
 
-LineFollower::LineFollower(LineDetector *lineDetector, DriveController *driveController, DistanceSensor *frontDistance)
+LineFollower::LineFollower(LinearSensorEdgeDetector *lineDetector, DriveController *driveController, DistanceSensor *frontDistance)
     : line(lineDetector), drive(driveController), distance(frontDistance)
 {
 }
@@ -24,5 +24,12 @@ void LineFollower::loop()
 
 void LineFollower::setLineToFollow(uint8_t index)
 {
-    // todo: implement
+    if (index == 0)
+    {
+        line->setFollowEdge(true);
+    }
+    else
+    {
+        line->setFollowEdge(false);
+    }
 }

@@ -4,16 +4,17 @@
 #include "../lineDetector/LineDetector.hpp"
 #include "../driveController/DriveController.hpp"
 #include "../distanceSensor/DistanceSensor.hpp"
+#include "../lineDetector/LinearSensorEdgeDetector.hpp"
 
 class LineFollower
 {
 private:
-    LineDetector *line;
+    LinearSensorEdgeDetector *line; // todo: change back to abstract as soon as new interface for line detector
     DriveController *drive;
     DistanceSensor *distance;
 
 public:
-    LineFollower(LineDetector *lineDetector, DriveController *driveController, DistanceSensor *frontDistance);
+    LineFollower(LinearSensorEdgeDetector *lineDetector, DriveController *driveController, DistanceSensor *frontDistance);
     ~LineFollower(){};
 
     void loop();
