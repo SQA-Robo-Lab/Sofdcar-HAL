@@ -1,5 +1,6 @@
 #include <SimpleHardwareController.hpp>
 #include "Config.hpp"
+#include "Functions.h"
 
 SimpleHardwareController controller;
 
@@ -16,7 +17,7 @@ void loop()
     controller.loop();
 }
 
-uint8_t getCurrentSpeed()
+int16_t getCurrentSpeed()
 {
     return controller.getDriveController()->getSpeed();
 }

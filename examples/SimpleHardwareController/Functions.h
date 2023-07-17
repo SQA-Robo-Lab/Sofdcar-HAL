@@ -1,0 +1,8 @@
+#ifndef SIMPLE_HARDWARE_COINTROLLER_EXAMPLE_FUNCTIONS_HPP
+#define SIMPLE_HARDWARE_COINTROLLER_EXAMPLE_FUNCTIONS_HPP
+
+#include <Arduino.h>
+
+int16_t getCurrentSpeed();
+
+#endif
