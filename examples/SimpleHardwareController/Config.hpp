@@ -13,12 +13,16 @@ TurnSteeringCarConfig config = {
     {13, 4}  // rearDistance
 };
 
-LineSensorConfig<3> lineConfig = {
-    16,           // sensor distance
-    {A0, A1, A2}, // sensor pins
-    {{41, 114},
-     {61, 140},
-     {31, 81}} // sensor thretholds
+uint8_t brightnessPins[3] = {A0, A1, A2};
+BrightnessThresholds thresholds[3] = {{41, 114},
+                                      {61, 140},
+                                      {31, 81}};
+
+LineSensorConfig lineConfig = {
+    16,             // sensor distance
+    3,              // number of sesnor
+    brightnessPins, // sensor pins
+    thresholds      // sensor thretholds
 };
 
 uint8_t desiredSpeed = 60;

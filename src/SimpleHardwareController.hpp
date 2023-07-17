@@ -4,12 +4,13 @@
 #include <Arduino.h>
 #include <Sofdcar-HAL.hpp>
 
-template <uint8_t numSensors>
+// template <uint8_t numSensors>
 struct LineSensorConfig
 {
     uint8_t sensorDistanceMm;
-    uint8_t sensorPins[numSensors];
-    BrightnessThresholds thresholds[numSensors];
+    uint8_t numSensors;
+    uint8_t *sensorPins;
+    BrightnessThresholds *thresholds;
 };
 
 struct FixedSteeringCarConfig
@@ -46,10 +47,10 @@ public:
     SimpleHardwareController();
     ~SimpleHardwareController();
 
-    template <uint8_t numSensors>
-    uint8_t initializeCar(FixedSteeringCarConfig fixedSteeringConfig, LineSensorConfig<numSensors> lineSensorConfig);
-    template <uint8_t numSensors>
-    uint8_t initializeCar(TurnSteeringCarConfig turnSteeringConfig, LineSensorConfig<numSensors> lineSensorConfig);
+    // template <uint8_t numSensors>
+    uint8_t initializeCar(FixedSteeringCarConfig fixedSteeringConfig, LineSensorConfig lineSensorConfig);
+    // template <uint8_t numSensors>
+    uint8_t initializeCar(TurnSteeringCarConfig turnSteeringConfig, LineSensorConfig lineSensorConfig);
 
     DriveController *getDriveController();
     LineDetector *getLineDetector();
@@ -59,8 +60,8 @@ public:
     void loop();
 
 protected:
-    template <uint8_t numSensors>
-    uint8_t initLineDetector(LineSensorConfig<numSensors> lineSensorConfig);
+    // template <uint8_t numSensors>
+    uint8_t initLineDetector(LineSensorConfig lineSensorConfig);
 };
 
 #endif

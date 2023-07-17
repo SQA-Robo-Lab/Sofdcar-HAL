@@ -65,8 +65,7 @@ SimpleHardwareController::~SimpleHardwareController()
     }
 }
 
-template <uint8_t numSensors>
-uint8_t SimpleHardwareController::initializeCar(FixedSteeringCarConfig fixedSteeringConfig, LineSensorConfig<numSensors> lineSensorConfig)
+uint8_t SimpleHardwareController::initializeCar(FixedSteeringCarConfig fixedSteeringConfig, LineSensorConfig lineSensorConfig)
 {
     if (this->initialized)
     {
@@ -102,8 +101,7 @@ uint8_t SimpleHardwareController::initializeCar(FixedSteeringCarConfig fixedStee
     this->initialized = true;
 }
 
-template <uint8_t numSensors>
-uint8_t SimpleHardwareController::initializeCar(TurnSteeringCarConfig turnSteeringConfig, LineSensorConfig<numSensors> lineSensorConfig)
+uint8_t SimpleHardwareController::initializeCar(TurnSteeringCarConfig turnSteeringConfig, LineSensorConfig lineSensorConfig)
 {
     if (this->initialized)
     {
@@ -136,13 +134,12 @@ uint8_t SimpleHardwareController::initializeCar(TurnSteeringCarConfig turnSteeri
     this->initialized = true;
 }
 
-template <uint8_t numSensors>
-uint8_t SimpleHardwareController::initLineDetector(LineSensorConfig<numSensors> lineSensorConfig)
+uint8_t SimpleHardwareController::initLineDetector(LineSensorConfig lineSensorConfig)
 {
     // todo: move config init to brightness sensor class
     // todo: copy threshods array
-    this->brightness = new BrightnessSensorAnalog(lineSensorConfig.sensorPins, numSensors, lineSensorConfig.thresholds);
-    this->lineDetector = new LinearSensorEdgeDetector(this->brightness, lineSensorConfig.sensorDistanceMm, false);
+    this->brightness = new BrightnessSensorAnalog(lineSensorConfig.sensorPins, lineSensorConfig.numSensors, lineSensorConfig.thresholds);
+    this->lineDetector = new LinearSensorEdgeDetector(*(this->brightness), lineSensorConfig.sensorDistanceMm, false);
 }
 
 DriveController *SimpleHardwareController::getDriveController()
