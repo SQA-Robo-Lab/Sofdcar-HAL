@@ -56,6 +56,8 @@ public:
     DistanceSensor *getDistanceSensor(uint8_t sensorNum = 0);
     LineFollower *getLineFollower();
 
+    void loop();
+
 protected:
     template <uint8_t numSensors>
     uint8_t initLineDetector(LineSensorConfig<numSensors> lineSensorConfig);

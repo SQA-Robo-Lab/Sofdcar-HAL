@@ -164,3 +164,15 @@ LineFollower *SimpleHardwareController::getLineFollower()
 {
     return this->lineFollower;
 }
+
+void SimpleHardwareController::loop()
+{
+    if (this->driveController != nullptr)
+    {
+        this->driveController->loop();
+    }
+    if (this->lineFollower != nullptr)
+    {
+        this->lineFollower->loop();
+    }
+}
