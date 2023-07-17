@@ -5,6 +5,11 @@
 
 #define SPEED_OF_SOUND_MM_PER_MSEC 340
 
+struct UltrasonicSensorConfig
+{
+    uint8_t triggerPin, echoPin;
+};
+
 class UltrasonicDistanceSensor : public DistanceSensor
 {
 private:
@@ -17,6 +22,7 @@ protected:
 
 public:
     UltrasonicDistanceSensor(uint8_t triggerPin, uint8_t echoPin, uint16_t maxDistance = 1000);
+    UltrasonicDistanceSensor(UltrasonicSensorConfig config);
     ~UltrasonicDistanceSensor(){};
 
     uint16_t getDistanceToClosestMm() override;

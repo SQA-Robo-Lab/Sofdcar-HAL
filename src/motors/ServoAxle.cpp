@@ -10,6 +10,10 @@ ServoAxle::ServoAxle(uint8_t servoPin, uint8_t maxSteeringLeftAngle, uint8_t max
 {
 }
 
+ServoAxle::ServoAxle(ServoMotorConfig config) : ServoAxle(config.servoPin, config.maxSteeringLeftAngle, config.maxSteeringRightAngle, config.maxLeftServoAngle, config.straightServoAngle, config.maxRightServoAngle)
+{
+}
+
 ServoAxle::~ServoAxle()
 {
 }

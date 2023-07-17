@@ -7,7 +7,11 @@ MotorDcHBridge::MotorDcHBridge(MotorSpeedUnit speedUnit, uint8_t speedEnablePin,
     pinMode(this->speedPin, OUTPUT);
     pinMode(this->polarityPin1, OUTPUT);
     pinMode(this->polarityPin2, OUTPUT);
+    
 }
+
+MotorDcHBridge::MotorDcHBridge(MotorPinConfig config) : MotorDcHBridge(MOTOR_SPEED_UNIT_CM_PER_SEC, config.speedPin, config.forwardPin, config.reversePin)
+{}
 
 void MotorDcHBridge::setSpeedRatioInternal(int16_t speedRatio)
 {

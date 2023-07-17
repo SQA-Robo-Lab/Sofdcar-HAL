@@ -12,6 +12,8 @@
 #include <lineDetector/brightnessSensor/BrightnessSensorAnalog.hpp>
 #include <lineDetector/brightnessSensor/BrightnessSensorDigital.hpp>
 
+#include <lineFollower/LineFollower.hpp>
+
 #include <motors/MotorDcHBridge.hpp>
 #include <motors/PolyCurveMotorProfile.hpp>
 #include <motors/ServoAxle.hpp>

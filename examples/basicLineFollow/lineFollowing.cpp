@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "lineFollowing.hpp"
 
-// #define TIMED_STEERING
+#define TIMED_STEERING
 
 #ifdef TIMED_STEERING
 #define MS_UNTIL_MAX_ANGLE 1000
