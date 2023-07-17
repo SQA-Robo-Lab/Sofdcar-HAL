@@ -9,6 +9,9 @@ void LineFollower::loop()
 {
     uint16_t d = this->distance->getDistanceToClosestMm();
 
+    Serial.print("Current distance: ");
+    Serial.println(d);
+
     if (d < 100 && this->drive->getSpeed() != 0)
     {
         this->drive->pause();

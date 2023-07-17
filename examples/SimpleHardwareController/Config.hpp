@@ -25,8 +25,4 @@ LineSensorConfig lineConfig = {
     thresholds      // sensor thretholds
 };
 
-uint8_t desiredSpeed = 60;
-
-extern SimpleHardwareController controller;
-
 #endif
