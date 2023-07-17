@@ -18,6 +18,11 @@ typedef enum
     LINE_POSITION_UNKNOWN
 } LinePosition;
 
+struct DetectedLine
+{
+    int8_t posMm, angle;
+};
+
 class LineDetector
 {
 
@@ -28,8 +33,16 @@ public:
     LinePosition getLegacyPosition();
     LinePosition positionToLegacy(int8_t pos, int8_t angle);
 
+    /**
+     * @deprecated Usage not recommended. Not as flexible as getAllDetectedLines
+     */
     virtual int8_t getLinePositionMm() = 0;
+    /**
+     * @deprecated Usage not recommended. Not as flexible as getAllDetectedLines
+     */
     virtual int8_t getLineAngle() = 0;
+
+    virtual uint8_t getAllDetectedLines(DetectedLine *result, uint8_t maxLenResult) = 0;
 };
 
 #endif

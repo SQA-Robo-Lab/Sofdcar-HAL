@@ -21,6 +21,8 @@ public:
 
     int8_t getLinePositionMm() override;
     int8_t getLineAngle() override;
+
+    uint8_t getAllDetectedLines(DetectedLine *result, uint8_t maxLenResult) override;
 };
 
 #endif

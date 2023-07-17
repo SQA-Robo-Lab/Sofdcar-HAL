@@ -9,12 +9,13 @@
 class LineFollower
 {
 private:
-    LinearSensorEdgeDetector *line; // todo: change back to abstract as soon as new interface for line detector
+    LineDetector *line;
     DriveController *drive;
     DistanceSensor *distance;
+    uint8_t followingEdgeNum = 0;
 
 public:
-    LineFollower(LinearSensorEdgeDetector *lineDetector, DriveController *driveController, DistanceSensor *frontDistance);
+    LineFollower(LineDetector *lineDetector, DriveController *driveController, DistanceSensor *frontDistance);
     ~LineFollower(){};
 
     void loop();

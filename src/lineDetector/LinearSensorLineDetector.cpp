@@ -97,3 +97,14 @@ int8_t LinearSensorLineDetector::getLineAngle()
 {
     return 0;
 }
+
+uint8_t LinearSensorLineDetector::getAllDetectedLines(DetectedLine *result, uint8_t maxLenResult)
+{
+    if (maxLenResult > 0)
+    {
+        result[0].posMm = this->getLinePositionMm();
+        result[0].angle = 0;
+        return 1;
+    }
+    return 0;
+}

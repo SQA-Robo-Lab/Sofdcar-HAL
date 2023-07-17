@@ -42,10 +42,27 @@ int8_t LinearSensorEdgeDetector::getLinePositionMm()
         nextIndex += this->sensors[i]->getValues(values + nextIndex, this->totalSensors - nextIndex);
     }
 
+    return this->calcEdgePosFromValues(values, this->leftEdge);
+}
+
+int8_t LinearSensorEdgeDetector::getLineAngle()
+{
+    return 0;
+}
+
+int8_t LinearSensorEdgeDetector::calcEdgePosFromValues(float *values, bool leftEdge)
+{
 #ifdef LINE_SENSOR_DEBUG
+    if (leftEdge)
+    {
+        Serial.print("--- Searching left edge ---");
+    }
+    else
+    {
+        Serial.print("--- Searching right edge ---");
+    }
     Serial.print("Brigtness values: ");
 #endif
-
     float fValues[this->totalSensors];
     for (uint8_t i = 0; i < this->totalSensors; i++)
     {
@@ -189,7 +206,37 @@ int8_t LinearSensorEdgeDetector::getLinePositionMm()
     }
 }
 
-int8_t LinearSensorEdgeDetector::getLineAngle()
+uint8_t LinearSensorEdgeDetector::getAllDetectedLines(DetectedLine *result, uint8_t maxLenResult)
 {
-    return 0;
+    float values[this->totalSensors];
+    uint32_t nextIndex = 0;
+
+    for (uint8_t i = 0; i < this->sensorsLen; i++)
+    {
+        nextIndex += this->sensors[i]->getValues(values + nextIndex, this->totalSensors - nextIndex);
+    }
+
+    int8_t linePosLeft = this->calcEdgePosFromValues(values, true);
+    int8_t linePosRight = this->calcEdgePosFromValues(values, false);
+
+    uint8_t filledSlots = 0;
+    if (linePosLeft != LINE_DETECTOR_NO_LINE_FOUND)
+    {
+        if (maxLenResult > filledSlots)
+        {
+            result[filledSlots].posMm = linePosLeft;
+            result[filledSlots].angle = 0;
+            filledSlots++;
+        }
+    }
+    if (linePosRight != LINE_DETECTOR_NO_LINE_FOUND)
+    {
+        if (maxLenResult > filledSlots)
+        {
+            result[filledSlots].posMm = linePosRight;
+            result[filledSlots].angle = 0;
+            filledSlots++;
+        }
+    }
+    return filledSlots;
 }

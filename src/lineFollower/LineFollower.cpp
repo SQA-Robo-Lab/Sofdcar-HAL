@@ -1,6 +1,6 @@
 #include "LineFollower.hpp"
 
-LineFollower::LineFollower(LinearSensorEdgeDetector *lineDetector, DriveController *driveController, DistanceSensor *frontDistance)
+LineFollower::LineFollower(LineDetector *lineDetector, DriveController *driveController, DistanceSensor *frontDistance)
     : line(lineDetector), drive(driveController), distance(frontDistance)
 {
 }
@@ -18,18 +18,15 @@ void LineFollower::loop()
         this->drive->resume();
     }
 
-    int8_t lp = this->line->getLinePositionMm();
-    this->drive->setAngle(lp * 20 / 16);
+    DetectedLine pos[2];
+    uint8_t numLines = this->line->getAllDetectedLines(pos, 2);
+    if (numLines > 0)
+    {
+        this->drive->setAngle(pos[min(this->followingEdgeNum, numLines - 1)].posMm * 20 / 16);
+    }
 }
 
 void LineFollower::setLineToFollow(uint8_t index)
 {
-    if (index == 0)
-    {
-        line->setFollowEdge(true);
-    }
-    else
-    {
-        line->setFollowEdge(false);
-    }
+    this->followingEdgeNum = index;
 }

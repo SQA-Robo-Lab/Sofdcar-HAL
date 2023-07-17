@@ -32,7 +32,7 @@ class SimpleHardwareController
 {
 private:
     DriveController *driveController;
-    LinearSensorEdgeDetector *lineDetector; // todo: change back to abstract as soon as new interface for line detector
+    LineDetector *lineDetector;
     DistanceSensor **distanceSensors;
     uint8_t numDistanceSensors;
     BrightnessSensor *brightness;

@@ -22,8 +22,12 @@ public:
 
     int8_t getLinePositionMm() override;
     int8_t getLineAngle() override;
+    uint8_t getAllDetectedLines(DetectedLine *result, uint8_t maxLenResult) override;
 
     void setFollowEdge(bool followLeftEdge);
+
+protected:
+    int8_t calcEdgePosFromValues(float *fValues, bool leftEdge = true);
 };
 
 #endif
