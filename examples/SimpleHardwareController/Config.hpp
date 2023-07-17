@@ -27,4 +27,8 @@ LineSensorConfig lineConfig = {
 
 uint8_t desiredSpeed = 60;
 
+extern SimpleHardwareController controller;
+
+uint8_t getCurrentSpeed();
+
 #endif
