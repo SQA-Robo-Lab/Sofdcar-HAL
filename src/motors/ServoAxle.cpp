@@ -47,5 +47,6 @@ void ServoAxle::reattachServo(uint8_t servoPin)
     {
         this->servoInstance.detach();
     }
-    this->servoInstance.attach(2);
+    this->pin = servoPin;
+    this->servoInstance.attach(this->pin);
 }
