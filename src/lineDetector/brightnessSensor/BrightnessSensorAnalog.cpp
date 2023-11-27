@@ -158,55 +158,61 @@ void BrightnessSensorAnalog::calibrateSensors(BrightnessThresholds *briThrethold
         return;
     }
 
-    uint8_t blackIsSmaller[this->pinsLen];
-    memset(blackIsSmaller, 1, this->pinsLen);
     for (uint8_t j = 0; j < this->pinsLen; j++)
     {
+        uint16_t minLine = 65535;
+        uint16_t maxLine = 0;
+        uint16_t minNonLine = 65535;
+        uint16_t maxNonLine = 0;
         for (uint8_t i = 0; i < numCaptures; i++)
         {
-            if (valuesLine[i][j] > valuesNonLine[i][j])
+            if (valuesLine[i][j] < minLine)
             {
-                blackIsSmaller[j] = 0;
+                minLine = valuesLine[i][j];
             }
-            else if (valuesLine[i][j] < valuesNonLine[i][j] && blackIsSmaller[j] == 0)
+            if (valuesLine[i][j] > maxLine)
             {
-                Serial.print("For sensor number ");
-                Serial.print(j);
-                Serial.print(" line/non-line brightness could not be determined! On line sometimes brighter, sometimes dimmer");
-                Serial.println("Cancelled calibration");
-                return;
+                maxLine = valuesLine[i][j];
             }
-            else
+            if (valuesNonLine[i][j] < minNonLine)
             {
-                Serial.print("For sensor number ");
-                Serial.print(j);
-                Serial.print(" line/non-line brightness could not be determined! Same value for on/off line");
-                Serial.println("Cancelled calibration");
+                minNonLine = valuesNonLine[i][j];
+            }
+            if (valuesNonLine[i][j] > maxNonLine)
+            {
+                maxNonLine = valuesNonLine[i][j];
             }
         }
+        Serial.print("For sensor number ");
+        Serial.print(j);
+        Serial.print(": ");
+        if (maxLine < minNonLine)
+        {
+            // The line returns smaller values => use the BIGGEST captured value for the line and the SMALLEST for non-line => smallest inbetween interval
+            Serial.print("Line is black/darker");
+            briThretholds[j].blackThreshold = maxLine;
+            briThretholds[j].whiteThreshold = minNonLine;
+        }
+        else if (maxNonLine < minLine)
+        {
+            // The line returns bigger values => use the SMALLEST captured value for the line and the BIGGEST for non-line => smallest inbetween interval
+            Serial.print("Line is white/brighter");
+            briThretholds[j].blackThreshold = minLine;
+            briThretholds[j].whiteThreshold = maxNonLine;
+        }
+        else
+        {
+            Serial.println(" line/non-line brightness could not be determined! On line sometimes brighter, sometimes dimmer. ");
+            Serial.println("Cancelled calibration");
+            return;
+        }
+        Serial.println();
     }
 
     Serial.println("----Finished capturing----");
     Serial.println("Calibrated values:");
     for (uint8_t j = 0; j < this->pinsLen; j++)
     {
-        for (uint8_t i = 1; i < numCaptures; i++)
-        {
-            if (blackIsSmaller[j])
-            {
-                // The line returns smaller values => use the BIGGEST captured value for the line and the SMALLEST for non-line => smallest inbetween interval
-                valuesLine[0][j] = max(valuesLine[0][j], valuesLine[i][j]);
-                valuesNonLine[0][j] = min(valuesNonLine[0][j], valuesNonLine[i][j]);
-            }
-            else
-            {
-                // The line returns bigger values => use the SMALLEST captured value for the line and the BIGGEST for non-line => smallest inbetween interval
-                valuesLine[0][j] = max(valuesLine[0][j], valuesLine[i][j]);
-                valuesNonLine[0][j] = min(valuesNonLine[0][j], valuesNonLine[i][j]);
-            }
-        }
-        briThretholds[j].blackThreshold = valuesLine[0][j];
-        briThretholds[j].whiteThreshold = valuesNonLine[0][j];
         Serial.print("Sensor ");
         Serial.print(j);
         Serial.print(" : Line:");
