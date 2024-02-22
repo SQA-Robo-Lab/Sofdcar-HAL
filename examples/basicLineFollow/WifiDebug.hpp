@@ -4,18 +4,26 @@
 #include <Wire.h>
 #include <Arduino.h>
 
-void receiveI2CMessage(int numberOfBytesReceived)
-{
-    Serial.print("Message received: ");
-    char i2cBuffer[numberOfBytesReceived];
-    Wire.readBytes(i2cBuffer, numberOfBytesReceived);
-    Serial.println(i2cBuffer);
-}
-
 class WifiDebug : public Print
 {
+protected:
+    static void receiveI2CMessage(int numberOfBytesReceived)
+    {
+        Serial.print("Message received: ");
+        char *i2cBuffer = new char[numberOfBytesReceived];
+        Wire.readBytes(i2cBuffer, numberOfBytesReceived);
+        Serial.println(i2cBuffer);
+        if (WifiDebug::instance != nullptr && WifiDebug::instance->onMessage != nullptr)
+        {
+            WifiDebug::instance->onMessage(i2cBuffer, numberOfBytesReceived);
+        }
+        delete[] i2cBuffer;
+    }
+
+    void (*onMessage)(char *data, uint16_t len) = nullptr;
+
 public:
-    inline static WifiDebug *instance;
+    inline static WifiDebug *instance = nullptr;
 
     bool isOpen = false;
 
@@ -23,7 +31,7 @@ public:
     {
         WifiDebug::instance = this;
         Wire.begin(8);
-        Wire.onReceive(receiveI2CMessage);
+        Wire.onReceive(WifiDebug::receiveI2CMessage);
         digitalWrite(SDA, 0);
         digitalWrite(SCL, 0);
     }
@@ -61,6 +69,11 @@ public:
             Wire.endTransmission();
             this->isOpen = false;
         }
+    }
+
+    void setOnMessage(void (*onMessage)(char *data, uint16_t len))
+    {
+        this->onMessage = onMessage;
     }
 };
 
