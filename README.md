@@ -1,4 +1,4 @@
-# New Motor Driver (Hardware abstraction libarary)
+# New Motor Driver (Hardware abstraction library)
 Library to abstract away the interaction with the hardware of the car and unify utilization between different car types.
 
 ## Installation
@@ -89,7 +89,7 @@ classDiagram
     note for DistanceSensor "Simple sensor detecting the distance to objects in its FOV\n\nImplementations:\n- UltrasonicDistanceSensor (Standard ultrasonic distance sensor with sound TOF)"
 ```
 
-### Full class diagrm
+### Full class diagram
 #### Driving hardware abstraction
 ```mermaid
 classDiagram   
