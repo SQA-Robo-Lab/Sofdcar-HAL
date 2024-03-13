@@ -78,6 +78,7 @@ void onWifiMessage(char *data, uint16_t len)
     {
         return;
     }
+    isManualMode = true;
     switch (data[0])
     {
     case 'd': // drive
@@ -111,7 +112,7 @@ void setup()
     Serial.begin(115200);
     Serial.println("Started");
     dc.setAngle(0);
-    dc.setSpeed(40);
+    // dc.setSpeed(40);
 }
 
 void loop()
@@ -130,16 +131,23 @@ void loop()
     uint16_t d = frontDistance.getDistanceToClosestMm();
     if (d > lastFrontDist + 10 || d < lastFrontDist - 10)
     {
-        uint8_t distData[7];
+        uint8_t distData[9];
         distData[0] = 'd';
         distData[1] = 'i';
         distData[2] = 's';
         distData[3] = 't';
-        distData[4] = (d >> 8) & 0xff;
-        distData[5] = d & 0xff;
-        distData[3] = '\n';
-        debug->write(distData, 2);
+        distData[4] = '#';
+        distData[5] = (511 >> 8) & 0xff;
+        distData[6] = 511 & 0xff;
+        distData[7] = '\n';
+        distData[8] = 0;
+        Serial.print("Sending i2c ");
+        Serial.print(strlen((char *)distData));
+        Serial.print(": ");
+        Serial.println((char *)distData);
+        // debug->write(distData, 8);
         Serial.println("Sent front distance");
+        lastFrontDist = d;
     }
 
     if (!isManualMode)
@@ -148,14 +156,14 @@ void loop()
     }
     else
     {
-        if (d < 100 && dc.getSpeed() > 0)
+        /*if (d < 100 && dc.getSpeed() > 0)
         {
             dc.pause();
         }
         else if ((d > 110 || dc.getNonPausedSpeed() < 0) && dc.getSpeed() == 0)
         {
             dc.resume();
-        }
+        }*/
     }
     delay(50);
 }

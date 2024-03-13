@@ -45,12 +45,14 @@ public:
             if (!this->isOpen)
             {
                 Wire.beginTransmission((int)9);
+                Serial.println("Opened transmission");
                 this->isOpen = true;
             }
             Wire.write(buffer, size);
             if (buffer[size - 1] == '\n')
             {
-                Wire.endTransmission();
+                Serial.print("Ended transmission: ");
+                Serial.println(Wire.endTransmission());
                 this->isOpen = false;
             }
         }
