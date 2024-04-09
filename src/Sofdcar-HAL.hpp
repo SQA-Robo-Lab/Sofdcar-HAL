@@ -18,4 +18,7 @@
 #include <motors/PolyCurveMotorProfile.hpp>
 #include <motors/ServoAxle.hpp>
 
+#include <rpc/RpcManager.hpp>
+#include <rpc/hal/RpcHal.hpp>
+
 #endif
