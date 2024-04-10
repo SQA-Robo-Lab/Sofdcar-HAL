@@ -1,6 +1,6 @@
 #include "RpcHal.hpp"
 #include "../RpcRootMember.hpp"
-#include "./driveController/DriveController_RPC.cpp"
+#include "./rpc_hal_header.hpp"
 
 RpcClass *rpc_createForHal()
 {

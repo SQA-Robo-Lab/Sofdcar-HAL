@@ -3,7 +3,7 @@
 RpcClass::RpcClass(uint16_t childCapacity) : numChildren(childCapacity)
 {
     this->names = new char *[childCapacity];
-    this->children = new RpcClassMember *[childCapacity];
+    this->children = new RpcChild *[childCapacity];
 }
 
 RpcClass::~RpcClass()
@@ -19,7 +19,7 @@ RpcClass::~RpcClass()
     delete[] this->children;
 }
 
-void RpcClass::addMember(const char *name, RpcClassMember *child)
+void RpcClass::addMember(const char *name, RpcChild *child)
 {
     for (uint16_t i = 0; i < this->numChildren; i++)
     {
@@ -33,7 +33,7 @@ void RpcClass::addMember(const char *name, RpcClassMember *child)
     }
 }
 
-RpcClassMember *RpcClass::getMember(const char *name)
+RpcChild *RpcClass::getMember(const char *name)
 {
     for (uint16_t i = 0; i < this->numChildren; i++)
     {

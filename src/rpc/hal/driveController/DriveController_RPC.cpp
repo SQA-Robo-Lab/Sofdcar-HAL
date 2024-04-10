@@ -1,4 +1,4 @@
-#include "../../RpcClass.hpp"
+#include "../rpc_hal_header.hpp"
 #include "../../RpcClassMember.hpp"
 #include "../../../driveController/DriveController.hpp"
 

@@ -22,7 +22,7 @@ void RpcManager::call(const char *specification, uint16_t specLen)
         memcpy(childName, specification + index, nameLen);
         childName[nameLen] = 0;
 
-        RpcClassMember *member = currClass->getMember(childName);
+        RpcClassMember *member = (RpcClassMember *)currClass->getMember(childName);
         delete[] childName;
 
         if (specification[index] != '(')
