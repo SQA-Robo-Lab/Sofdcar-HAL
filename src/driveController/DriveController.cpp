@@ -6,6 +6,9 @@ DriveController::DriveController()
 
 void DriveController::drive(int8_t angle, int16_t speed)
 {
+    Serial.print("Driving: ");
+    Serial.print(angle);
+    Serial.println(speed);
     this->setAngle(angle);
     this->setSpeed(speed);
 }
