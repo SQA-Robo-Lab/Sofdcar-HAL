@@ -12,6 +12,8 @@ public:
         int16_t value = (parameters[0] << 8) | parameters[1];
         Serial.print("Received: ");
         Serial.println(value);
+        returnValue[0] = parameters[0];
+        returnValue[1] = parameters[1];
         return nullptr;
     }
     uint16_t expectedParamBytes() { return 2; };

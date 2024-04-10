@@ -1,98 +1,242 @@
-#include "RpcManager.hpp"
+#define RPC_MANAGER_DEBUG 1
 
+#define MAX_CMD_LEN 512
+#define TIMEOUT 500
+
+#include "RpcManager.hpp"
 #include "RpcClassMember.hpp"
 
-RpcManager::RpcManager(Stream &dataStream, RpcClass *rpcClassRoot) : stream(dataStream), classRoot(rpcClassRoot)
+bool isAlphaNum(char c)
 {
+    return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
+RpcManager::RpcManager(Stream &dataStream, RpcClass *rpcClassRoot) : stream(dataStream), classRoot(rpcClassRoot), streamRead(dataStream)
+{
+    this->commandPart = new char[MAX_CMD_LEN];
+    this->resetCall();
+}
+
+RpcManager::~RpcManager()
+{
+    delete[] this->commandPart;
 }
 
 void RpcManager::call(const char *specification, uint16_t specLen)
 {
-    void *currObj = nullptr;
-    RpcClass *currClass = this->classRoot;
-    uint16_t index = 0;
-    while (index < specLen)
-    {
-        uint16_t nameStart = index;
-        for (; index < specLen && specification[index] != '(' && specification[index] != '.'; index++)
-        {
-        }
-        uint16_t nameLen = (index - nameStart) * sizeof(specification[0]);
-        char *childName = new char[nameLen + 1];
-        memcpy(childName, specification + nameStart, nameLen);
-        childName[nameLen] = 0;
+    ReadableString readable(specification, specLen);
+    this->callInternal(readable);
+    this->resetCall();
+}
 
-        RpcClassMember *member = (RpcClassMember *)currClass->getMember(childName);
-        delete[] childName;
+void RpcManager::resetCall()
+{
+    this->currObj = nullptr;
+    this->currClass = this->classRoot;
+    this->commandIndex = 0;
+    this->parametersStart = 0;
+    this->lastCommandPart = 0;
+}
+
+void RpcManager::error(const char *errorText, Readable &readable)
+{
+    this->stream.print("error:");
+    this->stream.println(errorText);
+    this->resetCall();
+    while (readable.available())
+    {
+        readable.read();
+    }
+    return;
+}
+
+void RpcManager::callInternal(Readable &readable)
+{
+    bool timeoutReached = false;
+#ifdef TIMEOUT
+    unsigned long now = millis();
+    if (this->lastCommandPart > 0 && this->commandIndex > 0 && now - this->lastCommandPart > TIMEOUT)
+    {
+        timeoutReached = true;
+    }
+#endif
+    while (readable.available() || timeoutReached)
+    {
+#ifdef TIMEOUT
+        if (!timeoutReached)
+        {
+            this->lastCommandPart = now;
+        }
+#endif
+#ifdef RPC_MANAGER_DEBUG
+        this->stream.print("Continuing call with ");
+        this->stream.print(this->commandIndex);
+        this->stream.print(", ");
+        this->stream.println(this->parametersStart);
+#endif
+        if (this->parametersStart == 0)
+        {
+#ifdef RPC_MANAGER_DEBUG
+            this->stream.println("Reading member name");
+#endif
+            for (; this->commandPart[this->commandIndex - 1] != '(' && this->commandPart[this->commandIndex - 1] != '.' && this->commandIndex < MAX_CMD_LEN;)
+            {
+                if (readable.available())
+                {
+                    char c = readable.read();
+                    if (isAlphaNum(c) || c == '(' || c == '.')
+                    {
+                        this->commandPart[this->commandIndex++] = c;
+                    }
+                }
+                else
+                {
+                    if (timeoutReached)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        return; // wait for more data of command
+                    }
+                }
+            }
+            if (this->commandPart[this->commandIndex - 1] == '.' || this->commandPart[this->commandIndex - 1] == '(')
+            {
+                this->commandPart[this->commandIndex] = this->commandPart[this->commandIndex - 1];
+                this->commandPart[this->commandIndex - 1] = 0;
+                this->commandIndex++;
+            }
+            else
+            {
+                this->commandPart[this->commandIndex] = 0;
+            }
+        }
+
+#ifdef RPC_MANAGER_DEBUG
+        this->stream.print("Searching member ");
+        this->stream.println(this->commandPart);
+#endif
+
+        RpcClassMember *member = (RpcClassMember *)currClass->getMember(this->commandPart);
 
         if (member == nullptr)
         {
             // error: member with specified name not found
-            this->stream.println("error: member with specified name not found");
+            this->error("member with specified name not found", readable);
             return;
         }
 
         RpcClass *returnClass = member->returnObjectType();
         uint16_t expectedBytes = member->expectedParamBytes();
 
-        bool hasOpeningBracket = false;
-        if (expectedBytes > 0 && specification[index] != '(')
+        if (this->parametersStart == 0)
         {
-            // error: Was function but no brackets found
-            this->stream.println("error: Was function but no brackets found");
-            return;
-        }
-        else if (specification[index] == '(')
-        {
-            // member call uses brackets => move index to next dot/end
-            index += 1 + expectedBytes + 1;
-            hasOpeningBracket = true;
+            this->parametersStart = this->commandIndex;
         }
 
-        if (hasOpeningBracket && specification[index - 1] != ')')
+        if (expectedBytes > 0 && this->commandPart[this->parametersStart - 1] != '(')
         {
-            // error: Function call not terminated with ) after expected number of bytes
-            this->stream.println("error: Function call not terminated with ) after expected number of bytes");
+            // error: Was function but no brackets found
+            this->error("Was function but no brackets found", readable);
             return;
         }
-        if (returnClass != nullptr)
+        else if (this->commandPart[this->parametersStart - 1] == '(')
         {
-            if (specification[index] != '.')
+// member call uses brackets => read number of expected bytes until next dot/end
+#ifdef RPC_MANAGER_DEBUG
+            this->stream.println("Reading parameters");
+#endif
+            for (uint16_t i = (this->commandIndex - this->parametersStart); i < expectedBytes + 1; i++)
             {
-                // error: cannot termiate rpc call with function that still returns object
-                this->stream.println("error: cannot termiate rpc call with function that still returns object");
+                if (readable.available())
+                {
+                    this->commandPart[this->commandIndex++] = readable.read();
+                }
+                else
+                {
+                    if (timeoutReached)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        return; // wait for more data of command
+                    }
+                }
+            }
+            if (this->commandPart[this->commandIndex - 1] != ')' || this->commandIndex - this->parametersStart != expectedBytes + 1)
+            {
+                // error: Function call not terminated with ) after expected number of bytes
+                this->error("Function call not terminated with ) after expected number of bytes", readable);
                 return;
             }
-            currObj = member->call(currObj, specification + index - expectedBytes - (hasOpeningBracket ? 1 : 0), nullptr);
+        }
+
+#ifdef RPC_MANAGER_DEBUG
+        this->stream.print("Len of parameters ");
+        this->stream.println(this->commandIndex - this->parametersStart);
+#endif
+
+        if (returnClass != nullptr)
+        {
+            if (this->commandPart[this->commandIndex - 1] != '.' && (!readable.available() || readable.peek() != '.'))
+            {
+                if (!readable.available())
+                {
+                    if (!timeoutReached)
+                    {
+                        return; // wait for more data of command
+                    }
+                }
+                // error: cannot termiate rpc call with function that still returns object
+                this->error("cannot termiate rpc call with function that still returns object", readable);
+                return;
+            }
+            else if (this->commandPart[this->commandIndex - 1] != '.')
+            { // read remaining dot to prepare for next command part
+                readable.read();
+            }
+            currObj = member->call(currObj, commandPart + parametersStart, nullptr);
             if (currObj == nullptr)
             {
                 // error: Function call returned null, no further call possible
-                this->stream.println("error: Function call returned null, no further call possible");
+                this->error("Function call returned null, no further call possible", readable);
                 return;
             }
             currClass = returnClass;
+            this->commandIndex = 0;
+            this->parametersStart = 0;
+            if (timeoutReached)
+            {
+                // error: timeout reached and no other command error
+                this->error("Command timeout reached", readable);
+                return;
+            }
         }
         else
         {
-            if (index < specLen)
+            if (this->commandPart[this->commandIndex - 1] == '.' || (readable.available() && readable.peek() == '.'))
             {
                 // error: Must terminate rpc call after function that does not return object
-                this->stream.println("error: Must terminate rpc call after function that does not return object");
+                this->error("Must terminate rpc call after function that does not return object", readable);
                 return;
             }
-            char returnVal[1024];
-            memset(returnVal, 0, 1024);
-            member->call(currObj, specification + index - expectedBytes - (hasOpeningBracket ? 1 : 0), returnVal);
+            char returnVal[MAX_CMD_LEN];
+            memset(returnVal, 0, MAX_CMD_LEN);
+            member->call(currObj, commandPart + parametersStart, returnVal);
             this->stream.print("return:");
             this->stream.println(returnVal);
+            this->resetCall();
         }
-        index++;
+        timeoutReached = false;
     }
 }
 
 void RpcManager::loop()
 {
-    char buffer[1024];
+    this->callInternal(this->streamRead);
+    /*char buffer[1024];
     memset(buffer, 0, 1024);
     uint16_t bufPos = -1;
     while (this->stream.available() > 0)
@@ -107,5 +251,5 @@ void RpcManager::loop()
             memset(buffer, 0, bufPos + 1);
             bufPos = 0;
         }
-    }
+    }*/
 }
