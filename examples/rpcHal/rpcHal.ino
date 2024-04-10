@@ -4,10 +4,18 @@
 #include "Config.hpp"
 #include "Arduino.h"
 
+#include "WifiDebug.hpp"
+WifiDebug *debug;
+
 SimpleHardwareController *controller = nullptr;
 
 RpcClass *rootClass = nullptr;
 RpcManager *mgr = nullptr;
+
+void onWifiMessage(char *data, uint16_t len)
+{
+    mgr->call(data, len);
+}
 
 void setup()
 {
@@ -24,6 +32,9 @@ void setup()
     controller->initializeCar(config, lineConfig);
 
     ((RpcRootMember *)rootClass->getMember("dc"))->updateValue(controller->getDriveController());
+
+    debug = new WifiDebug();
+    debug->setOnMessage(onWifiMessage);
 
     delay(100);
     Serial.println("Started");
