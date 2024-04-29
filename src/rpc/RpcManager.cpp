@@ -1,7 +1,9 @@
 #define RPC_MANAGER_DEBUG 1
 
 #define MAX_CMD_LEN 512
+#define MAX_EXECUTION_MODIFIER_LEN 10
 #define TIMEOUT 500
+#define MAX_SUBSCRIPTIONS 10
 
 #include "RpcManager.hpp"
 #include "RpcClassMember.hpp"
@@ -14,12 +16,21 @@ bool isAlphaNum(char c)
 RpcManager::RpcManager(Stream &dataStream, RpcClass *rpcClassRoot) : stream(dataStream), classRoot(rpcClassRoot), streamRead(dataStream)
 {
     this->commandPart = new char[MAX_CMD_LEN];
+    this->executionModifier = new char[MAX_EXECUTION_MODIFIER_LEN];
+    this->subscriptions = new RpcSubscription *[MAX_SUBSCRIPTIONS];
     this->resetCall();
 }
 
 RpcManager::~RpcManager()
 {
     delete[] this->commandPart;
+    delete[] this->executionModifier;
+
+    for (uint16_t i = 0; i < this->subscriptionIndex; i++)
+    {
+        delete this->subscriptions[i];
+    }
+    delete[] this->subscriptions;
 }
 
 void RpcManager::call(const char *specification, uint16_t specLen)
@@ -36,6 +47,7 @@ void RpcManager::resetCall()
     this->commandIndex = 0;
     this->parametersStart = 0;
     this->lastCommandPart = 0;
+    this->executionModifierType = RPC_EXECUTION_TYPE_REGULAR;
 }
 
 void RpcManager::error(const char *errorText, const char *methodName, Readable &readable)
@@ -55,6 +67,37 @@ void RpcManager::error(const char *errorText, const char *methodName, Readable &
         readable.read();
     }
     return;
+}
+
+void RpcManager::successReturn(const char *fnName, const char *data, uint16_t dataLen)
+{
+    this->stream.write((int8_t)(dataLen + 8 + strlen(fnName)));
+    this->stream.print("return:");
+    this->stream.print(fnName);
+    this->stream.print(":");
+    this->stream.write(data, dataLen);
+    this->resetCall();
+}
+
+RpcManager_ExecutionModifierType RpcManager::getExecutionModifierType(const char *mod, uint16_t len)
+{
+    if (mod[len - 1] != ':' && len < MAX_EXECUTION_MODIFIER_LEN)
+    {
+        return RPC_EXECUTION_TYPE_UNKNOWN;
+    }
+    if (len == 7 && mod[1] == 's' && mod[2] == 'u' && mod[3] == 'b')
+    {
+        return RPC_EXECUTION_TYPE_SUBSCRIPTION;
+    }
+
+    if (len >= MAX_EXECUTION_MODIFIER_LEN)
+    {
+        return RPC_EXECUTION_TYPE_REGULAR;
+    }
+    else
+    {
+        return RPC_EXECUTION_TYPE_UNKNOWN;
+    }
 }
 
 void RpcManager::callInternal(Readable &readable)
@@ -92,9 +135,29 @@ void RpcManager::callInternal(Readable &readable)
                 if (readable.available())
                 {
                     char c = readable.read();
-                    if (isAlphaNum(c) || c == '(' || c == '.')
-                    {
+                    if (this->executionModifierType == RPC_EXECUTION_TYPE_UNKNOWN)
+                    { // currently reading execution modifier
+                        this->executionModifier[this->commandIndex++] = c;
+
+                        this->executionModifierType = this->getExecutionModifierType(this->executionModifier, this->commandIndex);
+                        if (this->executionModifierType != RPC_EXECUTION_TYPE_UNKNOWN)
+                        { // full execution modifier has been read => reset command read index
+                            this->executionModifier[this->commandIndex] = 0;
+                            this->commandIndex = 0;
+#ifdef RPC_MANAGER_DEBUG
+                            Serial.print("Received execution modifier ");
+                            Serial.println(this->executionModifierType);
+#endif
+                        }
+                    }
+                    else if (isAlphaNum(c) || c == '(' || c == '.')
+                    { // reading regular command part
                         this->commandPart[this->commandIndex++] = c;
+                    }
+                    else if (this->commandIndex == 0 && c == ':' && this->executionModifierType == RPC_EXECUTION_TYPE_REGULAR)
+                    { // found start of execution modifier, no execution modifier captured yet
+                        this->executionModifier[this->commandIndex++] = c;
+                        this->executionModifierType = RPC_EXECUTION_TYPE_UNKNOWN;
                     }
                 }
                 else
@@ -230,20 +293,45 @@ void RpcManager::callInternal(Readable &readable)
                 this->error("Must terminate rpc call after function that does not return object", commandPart, readable);
                 return;
             }
-            char returnVal[MAX_CMD_LEN];
-            memset(returnVal, 0, MAX_CMD_LEN);
-            int16_t numBytes = (int16_t)(member->call(currObj, commandPart + parametersStart, returnVal));
-
+            switch (this->executionModifierType)
+            {
+            case RPC_EXECUTION_TYPE_REGULAR:
+            {
+                char returnVal[MAX_CMD_LEN];
+                memset(returnVal, 0, MAX_CMD_LEN);
+                int16_t numBytes = (int16_t)(member->call(currObj, commandPart + parametersStart, returnVal));
 #ifdef RPC_MANAGER_DEBUG
-            Serial.print("Command success. Return value ");
-            Serial.println(returnVal);
+                Serial.print("Command success. Return value ");
+                Serial.println(returnVal);
 #endif
-            this->stream.write((int8_t)(numBytes + 8 + strlen(commandPart)));
-            this->stream.print("return:");
-            this->stream.print(commandPart);
-            this->stream.print(":");
-            this->stream.write(returnVal, numBytes);
-            this->resetCall();
+                this->successReturn(commandPart, returnVal, numBytes);
+                break;
+            }
+            case RPC_EXECUTION_TYPE_SUBSCRIPTION:
+            {
+                if (this->subscriptionIndex >= MAX_SUBSCRIPTIONS)
+                {
+                    this->error("Maximum number of subscriptions exeeded", commandPart, readable);
+                    return;
+                }
+                uint16_t updateRate = (this->executionModifier[4] << 8) | this->executionModifier[5];
+                this->subscriptions[this->subscriptionIndex++] = new RpcSubscription(member, currObj, commandPart + parametersStart, expectedBytes, commandPart, updateRate);
+#ifdef RPC_MANAGER_DEBUG
+                Serial.print("Added subscription with update rate ");
+                Serial.println(updateRate);
+#endif
+                this->stream.write((int8_t)(12 + strlen(commandPart)));
+                this->stream.print(":sub:return:");
+                this->stream.print(commandPart);
+                this->resetCall();
+                break;
+            }
+            default:
+            {
+                this->error("Unknown execution modifier specified", commandPart, readable);
+                return;
+            }
+            }
         }
         timeoutReached = false;
     }
@@ -252,6 +340,10 @@ void RpcManager::callInternal(Readable &readable)
 void RpcManager::loop()
 {
     this->callInternal(this->streamRead);
+    for (uint16_t i = 0; i < this->subscriptionIndex; i++)
+    {
+        this->subscriptions[i]->loop(&RpcManager::successReturn, this);
+    }
     /*char buffer[1024];
     memset(buffer, 0, 1024);
     uint16_t bufPos = -1;
