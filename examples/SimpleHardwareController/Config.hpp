@@ -4,13 +4,13 @@
 #include <SimpleHardwareController.hpp>
 
 TurnSteeringCarConfig config = {
-    {6, 7, 8},                // rearLeft
-    {11, 12, 10},             // rearRight
-    {2, 40, 39, 19, 66, 109}, // steering
+    {8, 9, 10},                // rearLeft
+    {13, 12, 11},              // rearRight
+    {52, 40, 39, 19, 66, 109}, // steering
     120,
-    100,     // width, length
-    {13, 4}, // frontDistance
-    {13, 4}  // rearDistance
+    100,      // width, length
+    {48, 49}, // frontDistance
+    {48, 49}  // rearDistance
 };
 
 uint8_t brightnessPins[3] = {A0, A1, A2};
