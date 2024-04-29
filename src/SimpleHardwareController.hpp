@@ -4,30 +4,6 @@
 #include <Arduino.h>
 #include <Sofdcar-HAL.hpp>
 
-// template <uint8_t numSensors>
-struct LineSensorConfig
-{
-    uint8_t sensorDistanceMm;
-    uint8_t numSensors;
-    uint8_t *sensorPins;
-    BrightnessThresholds *thresholds;
-};
-
-struct FixedSteeringCarConfig
-{
-    MotorPinConfig frontLeft, frontRight, rearLeft, rearRight;
-    uint8_t carWidth, carLength;
-    UltrasonicSensorConfig frontUltrasonic, rearUltrasonic;
-};
-
-struct TurnSteeringCarConfig
-{
-    MotorPinConfig rearLeft, rearRight;
-    ServoMotorConfig steering;
-    uint8_t carWidth, carLength;
-    UltrasonicSensorConfig frontUltrasonic, rearUltrasonic;
-};
-
 class SimpleHardwareController
 {
 private:

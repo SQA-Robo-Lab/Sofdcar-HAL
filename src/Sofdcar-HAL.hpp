@@ -18,4 +18,6 @@
 #include <motors/PolyCurveMotorProfile.hpp>
 #include <motors/ServoAxle.hpp>
 
+#include <carConfig/HardwareConfig.hpp>
+
 #endif

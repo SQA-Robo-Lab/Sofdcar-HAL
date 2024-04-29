@@ -4,11 +4,12 @@
 #include <SimpleHardwareController.hpp>
 
 TurnSteeringCarConfig config = {
-    {8, 9, 10},                // rearLeft
-    {13, 12, 11},              // rearRight
+    {13, 12, 11},              // rearLeft
+    {8, 9, 10},                // rearRight
     {52, 40, 39, 19, 66, 109}, // steering
     120,
     100,      // width, length
+    204,      // wheel circumfrence
     {48, 49}, // frontDistance
     {48, 49}  // rearDistance
 };
