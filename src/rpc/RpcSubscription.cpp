@@ -12,7 +12,6 @@ RpcSubscription::RpcSubscription(
                                                             obj(bindTo),
                                                             updateRate(sendUpdateRate)
 {
-    this->updateRate = 0;
     uint16_t fnNameLen = strlen(memberName);
     this->fnName = new char[fnNameLen];
     strcpy(fnName, memberName);
@@ -83,28 +82,34 @@ void RpcSubscription::loop(void (RpcManager::*successReturn)(const char *fnName,
         char returnValue[MAX_CMD_LEN];
         int16_t numBytes = (int16_t)(this->member->call(this->obj, this->parameters, returnValue));
 
-        if (this->updateRate == RPC_SUBSCRIPTION_ON_CHANGE && this->lastDataOrTime != nullptr)
+        if (this->updateRate == RPC_SUBSCRIPTION_ON_CHANGE)
         {
-            bool isSame = true;
-            for (uint16_t i = 0; i < numBytes; i++)
+            bool isSame = (numBytes == this->lastDataSize);
+            if (this->lastDataOrTime != nullptr && isSame)
             {
-                if (returnValue[i] != ((char *)this->lastDataOrTime)[i])
+                for (uint16_t i = 0; i < numBytes; i++)
                 {
-                    isSame = false;
-                    break;
+                    if (returnValue[i] != ((char *)this->lastDataOrTime)[i])
+                    {
+                        isSame = false;
+                        break;
+                    }
                 }
             }
-            if (isSame)
+            if (isSame || numBytes == 0)
             {
                 return;
             }
-            if (this->lastDataSize < numBytes)
+            else
             {
-                delete[] this->lastDataOrTime;
-                this->lastDataOrTime = new char[numBytes];
-                this->lastDataSize = numBytes;
+                if (this->lastDataSize < numBytes)
+                {
+                    delete[] this->lastDataOrTime;
+                    this->lastDataOrTime = new char[numBytes];
+                    this->lastDataSize = numBytes;
+                }
+                memcpy(this->lastDataOrTime, returnValue, numBytes);
             }
-            memcpy(this->lastDataOrTime, returnValue, numBytes);
         }
 
         (instance->*(successReturn))(this->fnName, returnValue, numBytes);
