@@ -13,7 +13,7 @@ RpcSubscription::RpcSubscription(
                                                             updateRate(sendUpdateRate)
 {
     uint16_t fnNameLen = strlen(memberName);
-    this->fnName = new char[fnNameLen];
+    this->fnName = new char[fnNameLen + 1];
     strcpy(fnName, memberName);
     if (parameterLen > 0)
     {
@@ -114,4 +114,27 @@ void RpcSubscription::loop(void (RpcManager::*successReturn)(const char *fnName,
 
         (instance->*(successReturn))(this->fnName, returnValue, numBytes);
     }
+}
+
+bool RpcSubscription::matches(RpcClassMember *subscribeTo, void *bindTo)
+{
+    return this->member == subscribeTo && this->obj == bindTo;
+}
+
+void RpcSubscription::setUpdateRate(uint16_t sendUpdateRate)
+{
+    if (this->updateRate == RPC_SUBSCRIPTION_ON_CHANGE && sendUpdateRate != RPC_SUBSCRIPTION_ON_CHANGE)
+    {
+        if (this->lastDataOrTime != nullptr)
+        {
+            delete[] this->lastDataOrTime;
+        }
+        this->lastDataOrTime = new unsigned long;
+    }
+    else if (this->updateRate != RPC_SUBSCRIPTION_ON_CHANGE && sendUpdateRate == RPC_SUBSCRIPTION_ON_CHANGE)
+    {
+        delete this->lastDataOrTime;
+        this->lastDataOrTime = nullptr;
+    }
+    this->updateRate = sendUpdateRate;
 }

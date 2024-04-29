@@ -26,6 +26,9 @@ public:
     ~RpcSubscription();
 
     void loop(void (RpcManager::*successReturn)(const char *fnName, const char *data, uint16_t dataLen), RpcManager *instance);
+
+    bool matches(RpcClassMember *subscribeTo, void *bindTo);
+    void setUpdateRate(uint16_t sendUpdateRate);
 };
 
 #endif

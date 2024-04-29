@@ -309,17 +309,37 @@ void RpcManager::callInternal(Readable &readable)
             }
             case RPC_EXECUTION_TYPE_SUBSCRIPTION:
             {
-                if (this->subscriptionIndex >= MAX_SUBSCRIPTIONS)
+                int32_t existingIndex = -1;
+                for (uint16_t i = 0; i < this->subscriptionIndex; i++)
+                {
+                    if (this->subscriptions[i]->matches(member, currObj))
+                    {
+                        existingIndex = i;
+                        break;
+                    }
+                }
+                if (existingIndex < 0 && this->subscriptionIndex >= MAX_SUBSCRIPTIONS)
                 {
                     this->error("Maximum number of subscriptions exeeded", commandPart, readable);
                     return;
                 }
                 uint16_t updateRate = (this->executionModifier[4] << 8) | this->executionModifier[5];
-                this->subscriptions[this->subscriptionIndex++] = new RpcSubscription(member, currObj, commandPart + parametersStart, expectedBytes, commandPart, updateRate);
+                if (existingIndex < 0)
+                {
+                    this->subscriptions[this->subscriptionIndex++] = new RpcSubscription(member, currObj, commandPart + parametersStart, expectedBytes, commandPart, updateRate);
 #ifdef RPC_MANAGER_DEBUG
-                Serial.print("Added subscription with update rate ");
-                Serial.println(updateRate);
+                    Serial.print("Added subscription with update rate ");
+                    Serial.println(updateRate);
 #endif
+                }
+                else
+                {
+                    this->subscriptions[existingIndex]->setUpdateRate(updateRate);
+#ifdef RPC_MANAGER_DEBUG
+                    Serial.print("Updated existing subscription to update rate ");
+                    Serial.println(updateRate);
+#endif
+                }
                 this->stream.write((int8_t)(12 + strlen(commandPart)));
                 this->stream.print(":sub:return:");
                 this->stream.print(commandPart);
