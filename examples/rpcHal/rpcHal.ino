@@ -1,4 +1,5 @@
 #include <Sofdcar-HAL.hpp>
+#include <Sofdcar-RPC.hpp>
 #include <SimpleHardwareController.hpp>
 #include <SimpleHardwareController_Connector.h>
 #include "Config.hpp"
