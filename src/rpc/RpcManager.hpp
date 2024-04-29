@@ -20,7 +20,7 @@ protected:
     unsigned long lastCommandPart;
 
     void callInternal(Readable &readable);
-    void error(const char *errorText, Readable &readable);
+    void error(const char *errorText, const char *methodName, Readable &readable);
     void resetCall();
 
 public:
