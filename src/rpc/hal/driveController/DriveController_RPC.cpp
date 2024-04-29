@@ -87,6 +87,19 @@ public:
     }
 };
 
+class DriveController_GetState : public RpcClassMember
+{
+public:
+    void *call(void *bindTo, const char *parameters, char *returnValue)
+    {
+        uint8_t val = ((DriveController *)bindTo)->getState();
+        returnValue[0] = val & 0xff;
+        return 1;
+    }
+    uint16_t expectedParamBytes() { return 0; };
+    RpcClass *returnObjectType() { return nullptr; };
+};
+
 RpcClass *rpc_get_DriveControler()
 {
     RpcClass *driveController = new RpcClass(8);
@@ -97,5 +110,6 @@ RpcClass *rpc_get_DriveControler()
     driveController->addMember("setAngle", new DriveController_SetAngle);
     driveController->addMember("pause", new DriveController_Pause);
     driveController->addMember("resume", new DriveController_Resume);
+    driveController->addMember("getState", new DriveController_GetState);
     return driveController;
 }

@@ -5,9 +5,9 @@
 
 enum DriveControllerState
 {
-    DRIVE_CONTROLLER_STATE_STOPPED,
-    DRIVE_CONTROLLER_STATE_PAUSED,
-    DRIVE_CONTROLLER_STATE_DRIVING,
+    DRIVE_CONTROLLER_STATE_STOPPED = 0,
+    DRIVE_CONTROLLER_STATE_PAUSED = 1,
+    DRIVE_CONTROLLER_STATE_DRIVING = 2,
 };
 
 class DriveController
@@ -30,6 +30,7 @@ public:
     int16_t getSpeed();
     int16_t getNonPausedSpeed();
     int8_t getAngle();
+    DriveControllerState getState();
 
     virtual void loop() = 0;
 

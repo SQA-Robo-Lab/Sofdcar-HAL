@@ -45,6 +45,12 @@ void DriveController::setAngle(int8_t angle)
 
 int16_t DriveController::getSpeed()
 {
+#ifdef DRIVE_CONTROLLER_DEBUG
+    Serial.print("Getting speed: ");
+    Serial.print(this->speed);
+    Serial.print(", at state ");
+    Serial.println(this->state);
+#endif
     return this->state == DRIVE_CONTROLLER_STATE_DRIVING ? this->speed : 0;
 }
 int16_t DriveController::getNonPausedSpeed()
@@ -54,4 +60,9 @@ int16_t DriveController::getNonPausedSpeed()
 int8_t DriveController::getAngle()
 {
     return this->angle;
+}
+
+DriveControllerState DriveController::getState()
+{
+    return this->state;
 }
