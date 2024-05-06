@@ -7,5 +7,6 @@
 #include <rpc/RpcManager.hpp>
 #include <rpc/RpcRootMember.hpp>
 #include <rpc/hal/RpcHal.hpp>
+#include <rpc/hal/EmergencyStop.hpp>
 
 #endif

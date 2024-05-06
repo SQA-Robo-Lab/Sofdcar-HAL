@@ -9,6 +9,8 @@
 WifiDebug *debug;*/
 
 SimpleHardwareController *controller = nullptr;
+DriveController *dc;
+EmergencyStop stop;
 
 RpcClass *rootClass = nullptr;
 RpcManager *mgr = nullptr;
@@ -34,7 +36,9 @@ void setup()
     initSofdcarHalConnectorFor(controller);
     controller->initializeCar(config, lineConfig);
 
-    ((RpcRootMember *)rootClass->getMember("dc"))->updateValue(controller->getDriveController());
+    dc = controller->getDriveController();
+    ((RpcRootMember *)rootClass->getMember("dc"))->updateValue(dc);
+    ((RpcRootMember *)rootClass->getMember("stop"))->updateValue(&stop);
 
     /*debug = new WifiDebug();
     debug->setOnMessage(onWifiMessage);*/
@@ -46,5 +50,10 @@ void setup()
 void loop()
 {
     mgr->loop();
-    delay(100);
+    if (stop.check())
+    {
+        Serial.println("EMERGENCY STOP!!");
+        dc->pause();
+    }
+    // delay(100);
 }

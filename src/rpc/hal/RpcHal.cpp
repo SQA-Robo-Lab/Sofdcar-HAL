@@ -24,8 +24,9 @@ RpcClass *rpc_createForHal()
 {
     RpcClass *driveControllerCls = rpc_get_DriveControler();
 
-    RpcClass *root = new RpcClass(2);
+    RpcClass *root = new RpcClass(3);
     root->addMember("dc", new RpcRootMember(driveControllerCls, nullptr));
     root->addMember("test", new TmpTestFn);
+    root->addMember("stop", new RpcRootMember(rpc_get_EmergencyStop(), nullptr));
     return root;
 }

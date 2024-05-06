@@ -4,5 +4,6 @@
 #include "../RpcClass.hpp"
 
 extern RpcClass *rpc_get_DriveControler();
+extern RpcClass *rpc_get_EmergencyStop();
 
 #endif
