@@ -63,6 +63,10 @@ SimpleHardwareController::~SimpleHardwareController()
         }
         delete this->axles;
     }
+    if (this->profile != nullptr)
+    {
+        delete this->profile;
+    }
 }
 
 uint8_t SimpleHardwareController::initializeCar(FixedSteeringCarConfig fixedSteeringConfig, LineSensorConfig lineSensorConfig)
@@ -118,6 +122,19 @@ uint8_t SimpleHardwareController::initializeCar(TurnSteeringCarConfig turnSteeri
     this->motors[0] = new MotorDcHBridge(turnSteeringConfig.rearLeft);
     this->motors[1] = new MotorDcHBridge(turnSteeringConfig.rearRight);
 
+    if (turnSteeringConfig.rpmLut != nullptr)
+    {
+        PolyCurveMotorProfile *polyProfile = new PolyCurveMotorProfile(turnSteeringConfig.wheelCircumference);
+#ifdef ARDUINO_ARCH_AVR
+        polyProfile->setMotorCurve(turnSteeringConfig.rpmLut, MOTOR_CURVE_TYPE_PROGMEM)
+#else
+        polyProfile->setMotorCurve(turnSteeringConfig.rpmLut, MOTOR_CURVE_TYPE_RAM_ALLOCATED);
+#endif
+            this->profile = polyProfile;
+        this->motors[0]->setProfile(this->profile);
+        this->motors[1]->setProfile(this->profile);
+    }
+
     this->numAxles = 1;
     this->axles = new SteerableAxle *[1];
     this->axles[0] = new ServoAxle(turnSteeringConfig.steering);
@@ -150,6 +167,11 @@ DriveController *SimpleHardwareController::getDriveController()
 LineDetector *SimpleHardwareController::getLineDetector()
 {
     return this->lineDetector;
+}
+
+uint8_t SimpleHardwareController::getNumDistanceSensors()
+{
+    return this->numDistanceSensors;
 }
 
 DistanceSensor *SimpleHardwareController::getDistanceSensor(uint8_t sensorNum)

@@ -17,6 +17,7 @@ private:
     SteerableAxle **axles;
     uint8_t numAxles;
     LineFollower *lineFollower;
+    MotorProfile *profile = nullptr;
     bool initialized;
 
 public:
@@ -30,6 +31,7 @@ public:
 
     DriveController *getDriveController();
     LineDetector *getLineDetector();
+    uint8_t getNumDistanceSensors();
     DistanceSensor *getDistanceSensor(uint8_t sensorNum = 0);
     LineFollower *getLineFollower();
 

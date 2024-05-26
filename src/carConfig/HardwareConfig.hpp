@@ -26,6 +26,7 @@ struct TurnSteeringCarConfig
     uint8_t carWidth, carLength;
     uint16_t wheelCircumference;
     UltrasonicSensorConfig frontUltrasonic, rearUltrasonic;
+    int16_t *rpmLut;
 };
 
 #endif
