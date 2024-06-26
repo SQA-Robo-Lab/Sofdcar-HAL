@@ -7,6 +7,7 @@ extern RpcClass *rpc_get_DistanceSensor();
 extern RpcClass *rpc_get_DriveController();
 extern RpcClass *rpc_get_EmergencyStop();
 extern RpcClass *rpc_get_LineDetector();
-extern RpcClass *rpc_get_SimpleHardwareController(RpcClass *driveControllerCls);
+extern RpcClass *rpc_get_LineFollower();
+extern RpcClass *rpc_get_SimpleHardwareController(RpcClass *lineFollowerCls, RpcClass *distanceSensorCls, RpcClass *lineDetectorCls, RpcClass *driveControllerCls);
 
 #endif

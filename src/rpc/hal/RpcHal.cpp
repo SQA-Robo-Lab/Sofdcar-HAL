@@ -23,14 +23,14 @@ public:
 RpcClass *rpc_createForHal()
 {
     RpcClass *driveControllerCls = rpc_get_DriveController();
-    RpcClass *simpleHardwareControllerCls = rpc_get_SimpleHardwareController(driveControllerCls);
     RpcClass *lineDetectorCls = rpc_get_LineDetector();
     RpcClass *distanceSensorCls = rpc_get_DistanceSensor();
+    RpcClass *lineFollowerCls = rpc_get_LineFollower();
+    RpcClass *simpleHardwareControllerCls = rpc_get_SimpleHardwareController(lineFollowerCls, distanceSensorCls, lineDetectorCls, driveControllerCls);
 
-    RpcClass *root = new RpcClass(6);
+    RpcClass *root = new RpcClass(5);
     root->addMember("dc", new RpcRootMember(driveControllerCls, nullptr));
     root->addMember("shc", new RpcRootMember(simpleHardwareControllerCls, nullptr));
-    root->addMember("ld", new RpcRootMember(lineDetectorCls, nullptr));
     root->addMember("ds", new RpcRootMember(distanceSensorCls, nullptr));
     root->addMember("test", new TmpTestFn);
     root->addMember("stop", new RpcRootMember(rpc_get_EmergencyStop(), nullptr));

@@ -63,7 +63,6 @@ void setup()
     dc = controller->getDriveController();
     ((RpcRootMember *)rootClass->getMember("dc"))->updateValue(dc);
     ((RpcRootMember *)rootClass->getMember("shc"))->updateValue(controller);
-    ((RpcRootMember *)rootClass->getMember("ld"))->updateValue(controller->getLineDetector());
     ((RpcRootMember *)rootClass->getMember("ds"))->updateValue(controller->getDistanceSensor());
     ((RpcRootMember *)rootClass->getMember("stop"))->updateValue(&stop);
 
@@ -79,6 +78,7 @@ void setup()
 void loop()
 {
     mgr->loop();
+    controller->loop();
     if (stop.check())
     {
         Serial.println("EMERGENCY STOP!!");
