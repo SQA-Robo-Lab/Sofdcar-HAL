@@ -42,6 +42,19 @@ public:
     RpcManager(Stream &dataStream, RpcClass *rpcClassRoot);
     ~RpcManager();
 
+    /**
+     * Expected specification format: :mod:x.y(--).z()
+     * Parts:
+     * - `:mod:` (optional) Execution modifier, changes how the call is executed. Possible values:0
+     *     - `:sub--:` Subscribe to the call (execute it automatically on a regular basis) where `--` is a uint16_t specifying the update rate
+     *         - 0=when value changes; Not recommended for values that are time consuming to check (e.g. ultrasonic) or change often
+     * - `x.`/`y(--).`/`z()`: Function/Member calls
+     *     - For Functions/members without parameters: Brackets optional; recommended to add brackets to last function call to speed up parsing
+     *     - With parameters: Brackets requires, Parameters in binary, big endian as required by function
+     * - Return:
+     *     - `error:z:message` on error (z is name of trailing function call, message is an error message string)
+     *     - `return:z:--` on success (z is name of trailing function call, -- is return data in binary as specified by called function)
+     */
     void call(const char *specification, uint16_t specLen);
     void loop();
 };
