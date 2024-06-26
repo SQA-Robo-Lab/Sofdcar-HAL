@@ -7,7 +7,7 @@ LineFollower::LineFollower(LineDetector *lineDetector, DriveController *driveCon
 
 void LineFollower::loop()
 {
-    if (this->mode & LINE_FOLLOW_MODE_ONLY_DISTANCE == LINE_FOLLOW_MODE_ONLY_DISTANCE)
+    if ((this->mode & LINE_FOLLOW_MODE_ONLY_DISTANCE) == LINE_FOLLOW_MODE_ONLY_DISTANCE)
     {
         uint16_t d = this->distance->getDistanceToClosestMm();
 
@@ -24,7 +24,7 @@ void LineFollower::loop()
         }
     }
 
-    if (this->mode & LINE_FOLLOW_MODE_ONLY_LINE == LINE_FOLLOW_MODE_ONLY_LINE)
+    if ((this->mode & LINE_FOLLOW_MODE_ONLY_LINE) == LINE_FOLLOW_MODE_ONLY_LINE)
     {
         DetectedLine pos[2];
         uint8_t numLines = this->line->getAllDetectedLines(pos, 2);

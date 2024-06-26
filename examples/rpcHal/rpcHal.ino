@@ -57,6 +57,7 @@ void setup()
 
     initSofdcarHalConnectorFor(controller);
     controller->initializeCar(config, lineConfig);
+    controller->getLineFollower()->setMode(LINE_FOLLOW_MODE_NONE);
 
     Serial.println(freeMemory());
 
