@@ -7,7 +7,7 @@ class DistanceSensor_GetDistanceToClosest : public RpcClassMember
 public:
     void *call(void *bindTo, const char *parameters, char *returnValue)
     {
-        uint8_t dist = ((DistanceSensor *)bindTo)->getDistanceToClosestMm();
+        uint16_t dist = ((DistanceSensor *)bindTo)->getDistanceToClosestMm();
         returnValue[0] = (dist >> 8) & 0xff;
         returnValue[1] = dist & 0xff;
         return 2;
@@ -25,7 +25,7 @@ public:
         returnValue[0] = angle & 0xff;
         return 1;
     }
-    uint16_t expectedParamBytes() { return 2; };
+    uint16_t expectedParamBytes() { return 0; };
     RpcClass *returnObjectType() { return nullptr; };
 };
 

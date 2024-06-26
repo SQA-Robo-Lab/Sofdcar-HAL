@@ -24,7 +24,7 @@ public:
         returnValue[0] = pos & 0xff;
         return 1;
     }
-    uint16_t expectedParamBytes() { return 2; };
+    uint16_t expectedParamBytes() { return 0; };
     RpcClass *returnObjectType() { return nullptr; };
 };
 
@@ -35,9 +35,9 @@ public:
     {
         int8_t angle = ((LineDetector *)bindTo)->getLineAngle();
         returnValue[0] = angle & 0xff;
-        return 0;
+        return 1;
     }
-    uint16_t expectedParamBytes() { return 1; };
+    uint16_t expectedParamBytes() { return 0; };
     RpcClass *returnObjectType() { return nullptr; };
 };
 
