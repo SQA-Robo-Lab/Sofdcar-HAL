@@ -323,7 +323,7 @@ void RpcManager::callInternal(Readable &readable)
                     this->error("Maximum number of subscriptions exeeded", commandPart, readable);
                     return;
                 }
-                uint16_t updateRate = (this->executionModifier[4] << 8) | this->executionModifier[5];
+                uint16_t updateRate = ((this->executionModifier[4] << 8) & 0xff00) | (this->executionModifier[5] & 0xff);
                 if (existingIndex < 0)
                 {
                     this->subscriptions[this->subscriptionIndex++] = new RpcSubscription(member, currObj, commandPart + parametersStart, expectedBytes, commandPart, updateRate);

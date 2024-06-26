@@ -8,7 +8,7 @@ public:
     void *call(void *bindTo, const char *parameters, char *returnValue)
     {
         int8_t angle = parameters[0];
-        int16_t speed = (parameters[1] << 8) | parameters[2];
+        int16_t speed = ((parameters[1] << 8) & 0xff00) | parameters[2];
         ((DriveController *)bindTo)->drive(angle, speed);
         return 0;
     }
@@ -21,7 +21,7 @@ class DriveController_SetSpeed : public RpcClassMember
 public:
     void *call(void *bindTo, const char *parameters, char *returnValue)
     {
-        int16_t speed = (parameters[0] << 8) | parameters[1];
+        int16_t speed = ((parameters[0] << 8) & 0xff00) | parameters[1];
         ((DriveController *)bindTo)->setSpeed(speed);
         return 0;
     }
@@ -47,7 +47,7 @@ class DriveController_GetSpeed : public RpcClassMember
 public:
     void *call(void *bindTo, const char *parameters, char *returnValue)
     {
-        uint16_t val = ((DriveController *)bindTo)->getSpeed();
+        int16_t val = ((DriveController *)bindTo)->getSpeed();
         returnValue[0] = (val >> 8) & 0xff;
         returnValue[1] = val & 0xff;
         return 2;
@@ -61,7 +61,7 @@ class DriveController_GetAngle : public RpcClassMember
 public:
     void *call(void *bindTo, const char *parameters, char *returnValue)
     {
-        uint8_t val = ((DriveController *)bindTo)->getAngle();
+        int8_t val = ((DriveController *)bindTo)->getAngle();
         returnValue[0] = val & 0xff;
         return 1;
     }
