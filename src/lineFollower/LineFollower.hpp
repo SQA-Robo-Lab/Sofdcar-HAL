@@ -6,6 +6,15 @@
 #include "../distanceSensor/DistanceSensor.hpp"
 #include "../lineDetector/LinearSensorEdgeDetector.hpp"
 
+enum LineFollowMode
+{
+    LINE_FOLLOW_MODE_NONE = 0,
+    LINE_FOLLOW_MODE_ONLY_LINE = 1,
+    LINE_FOLLOW_MODE_ONLY_DISTANCE = 2,
+    LINE_FOLLOW_MODE_FULL = 255,
+    LINE_FOLLOW_MODE_SPECIAL = 51,
+};
+
 class LineFollower
 {
 private:
@@ -13,6 +22,7 @@ private:
     DriveController *drive;
     DistanceSensor *distance;
     uint8_t followingEdgeNum = 0;
+    LineFollowMode mode = LINE_FOLLOW_MODE_FULL;
 
 public:
     LineFollower(LineDetector *lineDetector, DriveController *driveController, DistanceSensor *frontDistance);
@@ -20,6 +30,8 @@ public:
 
     void loop();
     void setLineToFollow(uint8_t index);
+    void setMode(LineFollowMode mode);
+    LineFollowMode getMode();
 };
 
 #endif
