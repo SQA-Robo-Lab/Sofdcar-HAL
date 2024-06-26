@@ -12,10 +12,10 @@
 
 typedef enum
 {
-    LEFT_OF_LINE,
-    ON_LINE,
-    RIGHT_OF_LINE,
-    LINE_POSITION_UNKNOWN
+    LEFT_OF_LINE = 0,
+    ON_LINE = 1,
+    RIGHT_OF_LINE = 2,
+    LINE_POSITION_UNKNOWN = 3
 } LinePosition;
 
 struct DetectedLine

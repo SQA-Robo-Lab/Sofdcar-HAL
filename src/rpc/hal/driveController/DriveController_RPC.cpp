@@ -100,7 +100,7 @@ public:
     RpcClass *returnObjectType() { return nullptr; };
 };
 
-RpcClass *rpc_get_DriveControler()
+RpcClass *rpc_get_DriveController()
 {
     RpcClass *driveController = new RpcClass(8);
     driveController->addMember("drive", new DriveController_Drive);
