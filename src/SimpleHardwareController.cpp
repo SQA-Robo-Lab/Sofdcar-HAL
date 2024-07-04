@@ -126,11 +126,11 @@ uint8_t SimpleHardwareController::initializeCar(TurnSteeringCarConfig turnSteeri
     {
         PolyCurveMotorProfile *polyProfile = new PolyCurveMotorProfile(turnSteeringConfig.wheelCircumference);
 #ifdef ARDUINO_ARCH_AVR
-        polyProfile->setMotorCurve(turnSteeringConfig.rpmLut, MOTOR_CURVE_TYPE_PROGMEM)
+        polyProfile->setMotorCurve(turnSteeringConfig.rpmLut, MOTOR_CURVE_TYPE_PROGMEM);
 #else
         polyProfile->setMotorCurve(turnSteeringConfig.rpmLut, MOTOR_CURVE_TYPE_RAM_ALLOCATED);
 #endif
-            this->profile = polyProfile;
+        this->profile = polyProfile;
         this->motors[0]->setProfile(this->profile);
         this->motors[1]->setProfile(this->profile);
     }
