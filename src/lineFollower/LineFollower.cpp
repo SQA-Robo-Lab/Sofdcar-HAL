@@ -7,10 +7,13 @@ LineFollower::LineFollower(LineDetector *lineDetector, DriveController *driveCon
 {
 }
 
+DriveControllerState lastSetState = DRIVE_CONTROLLER_STATE_DRIVING;
+
 void LineFollower::loop()
 {
     if ((this->mode & LINE_FOLLOW_MODE_ONLY_DISTANCE) == LINE_FOLLOW_MODE_ONLY_DISTANCE)
     {
+        if (this->drive->getState() == lastSetState) {
         uint16_t d = this->distance->getDistanceToClosestMm();
 
 #ifdef LINE_FOLLOWER_DEBUG
@@ -21,10 +24,16 @@ void LineFollower::loop()
         if (d < 100 && this->drive->getSpeed() != 0)
         {
             this->drive->pause();
+            lastSetState = DRIVE_CONTROLLER_STATE_PAUSED;
         }
         else if (d > 100 && this->drive->getSpeed() == 0)
         {
             this->drive->resume();
+            lastSetState = DRIVE_CONTROLLER_STATE_DRIVING;
+        }
+        } else {
+            Serial.print("State ext. changed. Waiting to change back to ");
+            Serial.println(lastSetState);
         }
     }
 
