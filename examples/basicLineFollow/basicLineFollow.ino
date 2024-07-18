@@ -205,6 +205,7 @@ void loop()
     {
 // lineFollowing(dc, ld, frontDistance, rearDistance);
 #if defined(RED_CAR)
+        if (dc.getState() != DRIVE_CONTROLLER_STATE_PAUSED) {
         unsigned long timeSinceLast = millis() - lastFrontContact;
         if ((lastFrontContact == 0 || timeSinceLast > 3000) && frontDistance.getDistanceToClosestMm() < 200)
         {
@@ -220,6 +221,7 @@ void loop()
                 follower.setLineToFollow(1);
                 lastFrontContact = 0;
             }
+        }
         }
 #endif
         follower.loop();
