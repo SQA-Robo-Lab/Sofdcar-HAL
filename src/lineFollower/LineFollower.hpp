@@ -23,6 +23,7 @@ private:
     DistanceSensor *distance;
     uint8_t followingEdgeNum = 0;
     LineFollowMode mode = LINE_FOLLOW_MODE_FULL;
+    DetectedLine lastLine;
 
 public:
     LineFollower(LineDetector *lineDetector, DriveController *driveController, DistanceSensor *frontDistance);

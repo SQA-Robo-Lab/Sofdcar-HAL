@@ -1,6 +1,6 @@
 #include "LinearSensorEdgeDetector.hpp"
 
-// #define LINE_SENSOR_DEBUG
+#define LINE_SENSOR_DEBUG
 
 #define NO_SENSOR_INDEX 255
 
@@ -71,7 +71,7 @@ int8_t LinearSensorEdgeDetector::calcEdgePosFromValues(float *values, bool leftE
         Serial.print(1 - values[i]);
         Serial.print("); ");
 #endif
-        fValues[this->leftEdge ? i : this->totalSensors - i - 1] = 1 - values[i];
+        fValues[leftEdge ? i : this->totalSensors - i - 1] = 1 - values[i];
     }
 #ifdef LINE_SENSOR_DEBUG
     // Serial.println();
@@ -186,12 +186,12 @@ int8_t LinearSensorEdgeDetector::calcEdgePosFromValues(float *values, bool leftE
         }
     }
 
-    if (linePosRel != NAN)
+    if (linePosRel == linePosRel) // test if nan by comparing with itself
     {
         linePosRel -= (this->totalSensors - 1) * 0.5;
-        linePosRel = this->leftEdge ? linePosRel : -linePosRel;
+        linePosRel = leftEdge ? linePosRel : -linePosRel;
 #ifdef LINE_SENSOR_DEBUG
-        Serial.print("; Detected pos: ");
+        Serial.print("; Detected pos-: ");
         Serial.println(linePosRel);
 #endif
         int8_t pos = round(linePosRel * this->sensorDistance);
@@ -200,7 +200,7 @@ int8_t LinearSensorEdgeDetector::calcEdgePosFromValues(float *values, bool leftE
     else
     {
 #ifdef LINE_SENSOR_DEBUG
-        Serial.println("; Detected pos: nan");
+        Serial.println("; Detected pos: nan!");
 #endif
         return LINE_DETECTOR_NO_LINE_FOUND;
     }
@@ -218,6 +218,9 @@ uint8_t LinearSensorEdgeDetector::getAllDetectedLines(DetectedLine *result, uint
 
     int8_t linePosLeft = this->calcEdgePosFromValues(values, true);
     int8_t linePosRight = this->calcEdgePosFromValues(values, false);
+    Serial.print(linePosLeft);
+    Serial.print("; ");
+    Serial.println(linePosRight);
 
     uint8_t filledSlots = 0;
     if (linePosLeft != LINE_DETECTOR_NO_LINE_FOUND)

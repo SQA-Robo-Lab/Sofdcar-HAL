@@ -1,4 +1,4 @@
-#define DRIVE_CONTROLLER_DEBUG 1
+// #define DRIVE_CONTROLLER_DEBUG 1
 
 #include "DriveController.hpp"
 

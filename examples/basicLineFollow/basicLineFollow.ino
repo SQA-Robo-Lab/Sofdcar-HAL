@@ -1,7 +1,14 @@
 #include <Sofdcar-HAL.hpp>
+#include <Sofdcar-RPC.hpp>
 #include "lineFollowing.hpp"
 #include "Servo.h"
 #include "Arduino.h"
+
+#define RED_CAR
+// #define BLUE_CAR
+
+#define PAPER
+// #define WOOD
 
 #include "SerialDebug.hpp"
 #include "WifiDebug.hpp"
@@ -29,12 +36,32 @@ uint8_t pins[] = {A0, A1, A2};
 //  left: weiß: 114-180, schwarz: 41 => min: 11 max: 31 => offset: 13, factor:
 //  middle: weiß: 132-235, schwarz: 61 => min: 14, max: 44 => offset: 0, factor: 1
 //  right: weiß: 80-170, schwarz: 31 => min: 8, max: 28 => offset: 18, factor:
-BrightnessThresholds thresholds[] = {
+#if defined(RED_CAR) and defined(WOOD)
+BrightnessThresholds thresholds[] = { // car red
+    {67, 52},
+    {75, 47},
+    {73, 55}};
+#elif defined(BLUE_CAR) and defined(WOOD)
+BrightnessThresholds thresholds[] = { // car blue
     {72, 210},
     {100, 245},
     {63, 189}};
-
-ServoAxle serv(52, 40, 39, 19, 66, 109);
+#elif defined(RED_CAR) and defined(PAPER)
+BrightnessThresholds thresholds[] = {
+    {32, 130},
+    {30, 138},
+    {36, 136}};
+#elif defined(BLUE_CAR) and defined(PAPER)
+BrightnessThresholds thresholds[] = { // Orig
+    {90, 184},
+    {107, 224},
+    {85, 156}};
+#endif
+#if defined(RED_CAR)
+ServoAxle serv(52, 40, 40, 47, 73, 98); // red car
+#elif defined(BLUE_CAR)
+ServoAxle serv(52, 40, 39, 29, 66, 102); // blue car
+#endif
 MotorDcHBridge rearLeft(MOTOR_SPEED_UNIT_CM_PER_SEC, 8, 9, 10);
 MotorDcHBridge rearRight(MOTOR_SPEED_UNIT_CM_PER_SEC, 13, 12, 11);
 TurnSteeringDriveController dc(
@@ -71,6 +98,13 @@ UltrasonicDistanceSensor rearDistance(24, 25);
 #endif
 
 PolyCurveMotorProfile profile(21 /*cm*/);
+LineFollower follower(&ld, &dc, &frontDistance);
+
+/* RPC */
+EmergencyStop stop;
+RpcClass *rootClass = nullptr;
+RpcManager *mgr = nullptr;
+/* /RPC */
 
 void onWifiMessage(char *data, uint16_t len)
 {
@@ -100,6 +134,14 @@ void setup()
     debug = new WifiDebug();
     debug->setOnMessage(onWifiMessage);
 
+    /* RPC */
+    Serial1.begin(115200);
+    rootClass = rpc_createForHal();
+    mgr = new RpcManager(Serial1, rootClass);
+    ((RpcRootMember *)rootClass->getMember("dc"))->updateValue(&dc);
+    ((RpcRootMember *)rootClass->getMember("stop"))->updateValue(&stop);
+    /* /RPC */
+
     profile.setMotorCurve(const_cast<int16_t *>(rpmLut), MOTOR_CURVE_TYPE_PROGMEM);
     rearLeft.setProfile(&profile);
     rearRight.setProfile(&profile);
@@ -112,8 +154,17 @@ void setup()
     Serial.begin(115200);
     Serial.println("Started");
     dc.setAngle(0);
-    // dc.setSpeed(40);
+
+#if defined(RED_CAR)
+    dc.setSpeed(63);
+#elif defined(BLUE_CAR)
+    dc.setSpeed(40);
+#endif
+
+    follower.setLineToFollow(1);
 }
+
+unsigned long lastFrontContact = 0;
 
 void loop()
 {
@@ -121,14 +172,14 @@ void loop()
 
     dc.loop();
 
-    int8_t pos = ld.getLinePositionMm();
+    /*int8_t pos = ld.getLinePositionMm();
     int8_t angle = ld.getLineAngle();
-    /*Serial.print("Detected line pos: ");
+    Serial.print("Detected line pos: ");
     Serial.print(pos);
     Serial.print("mm; Legacy: ");
     Serial.println(ld.positionToLegacy(pos, angle));*/
 
-    uint16_t d = frontDistance.getDistanceToClosestMm();
+    /*uint16_t d = frontDistance.getDistanceToClosestMm();
     if (d > lastFrontDist + 10 || d < lastFrontDist - 10)
     {
         uint8_t distData[9];
@@ -148,11 +199,30 @@ void loop()
         // debug->write(distData, 8);
         Serial.println("Sent front distance");
         lastFrontDist = d;
-    }
+    }*/
 
     if (!isManualMode)
     {
-        lineFollowing(dc, ld, frontDistance, rearDistance);
+// lineFollowing(dc, ld, frontDistance, rearDistance);
+#if defined(RED_CAR)
+        unsigned long timeSinceLast = millis() - lastFrontContact;
+        if ((lastFrontContact == 0 || timeSinceLast > 3000) && frontDistance.getDistanceToClosestMm() < 200)
+        {
+            Serial.println("Switching line to left");
+            lastFrontContact = millis();
+            follower.setLineToFollow(0);
+        }
+        else
+        {
+            if (lastFrontContact > 0 && timeSinceLast > 5500)
+            {
+                Serial.println("Switching line back right");
+                follower.setLineToFollow(1);
+                lastFrontContact = 0;
+            }
+        }
+#endif
+        follower.loop();
     }
     else
     {

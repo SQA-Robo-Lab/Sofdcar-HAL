@@ -23,7 +23,7 @@ protected:
     void (*onMessage)(char *data, uint16_t len) = nullptr;
 
 public:
-    inline static WifiDebug *instance = nullptr;
+    static WifiDebug *instance;
 
     bool isOpen = false;
 
@@ -78,5 +78,7 @@ public:
         this->onMessage = onMessage;
     }
 };
+
+WifiDebug *WifiDebug::instance = nullptr;
 
 #endif
