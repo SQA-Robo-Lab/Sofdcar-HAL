@@ -30,8 +30,9 @@ void DriveController::setSpeed(int16_t speed)
     Serial.println(speed);
 #endif
     this->speed = speed;
-    this->setSpeedInternal(speed);
-    this->state = this->speed == 0 ? DRIVE_CONTROLLER_STATE_STOPPED : DRIVE_CONTROLLER_STATE_DRIVING;
+    if (this->state != DRIVE_CONTROLLER_STATE_PAUSED) {
+        this->resume();
+    }
 }
 void DriveController::setAngle(int8_t angle)
 {
