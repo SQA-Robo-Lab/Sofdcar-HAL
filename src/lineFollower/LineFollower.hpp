@@ -27,10 +27,11 @@ private:
 
 public:
     LineFollower(LineDetector *lineDetector, DriveController *driveController, DistanceSensor *frontDistance);
-    ~LineFollower(){};
+    ~LineFollower() {};
 
     void loop();
     void setLineToFollow(uint8_t index);
+    uint8_t getLineToFollow();
     void setMode(LineFollowMode mode);
     LineFollowMode getMode();
 };

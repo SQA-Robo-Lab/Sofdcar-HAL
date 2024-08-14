@@ -15,6 +15,19 @@ public:
     RpcClass *returnObjectType() { return nullptr; };
 };
 
+class LineFollower_GetLineToFollow : public RpcClassMember
+{
+public:
+    void *call(void *bindTo, const char *parameters, char *returnValue)
+    {
+        uint8_t mode = ((LineFollower *)bindTo)->getLineToFollow();
+        returnValue[0] = mode & 0xff;
+        return 1;
+    }
+    uint16_t expectedParamBytes() { return 0; };
+    RpcClass *returnObjectType() { return nullptr; };
+};
+
 class LineFollower_SetMode : public RpcClassMember
 {
 public:
@@ -43,8 +56,9 @@ public:
 
 RpcClass *rpc_get_LineFollower()
 {
-    RpcClass *lineFollower = new RpcClass(3);
+    RpcClass *lineFollower = new RpcClass(4);
     lineFollower->addMember("setLineToFollow", new LineFollower_SetLineToFollow);
+    lineFollower->addMember("getLineToFollow", new LineFollower_GetLineToFollow);
     lineFollower->addMember("setMode", new LineFollower_SetMode);
     lineFollower->addMember("getMode", new LineFollower_GetMode);
     return lineFollower;

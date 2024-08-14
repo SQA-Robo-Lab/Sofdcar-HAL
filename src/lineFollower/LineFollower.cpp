@@ -13,25 +13,28 @@ void LineFollower::loop()
 {
     if ((this->mode & LINE_FOLLOW_MODE_ONLY_DISTANCE) == LINE_FOLLOW_MODE_ONLY_DISTANCE)
     {
-        if (this->drive->getState() == lastSetState) {
-        uint16_t d = this->distance->getDistanceToClosestMm();
+        if (this->drive->getState() == lastSetState)
+        {
+            uint16_t d = this->distance->getDistanceToClosestMm();
 
 #ifdef LINE_FOLLOWER_DEBUG
-        Serial.print("Current distance: ");
-        Serial.println(d);
+            Serial.print("Current distance: ");
+            Serial.println(d);
 #endif
 
-        if (d < 100 && this->drive->getSpeed() != 0)
-        {
-            this->drive->pause();
-            lastSetState = DRIVE_CONTROLLER_STATE_PAUSED;
+            if (d < 100 && this->drive->getSpeed() > 0)
+            {
+                this->drive->pause();
+                lastSetState = DRIVE_CONTROLLER_STATE_PAUSED;
+            }
+            else if ((this->drive->getSpeed() == 0) && (d > 100 || this->drive->getNonPausedSpeed() < 0))
+            {
+                this->drive->resume();
+                lastSetState = DRIVE_CONTROLLER_STATE_DRIVING;
+            }
         }
-        else if (d > 100 && this->drive->getSpeed() == 0)
+        else
         {
-            this->drive->resume();
-            lastSetState = DRIVE_CONTROLLER_STATE_DRIVING;
-        }
-        } else {
             Serial.print("State ext. changed. Waiting to change back to ");
             Serial.println(lastSetState);
         }
@@ -61,6 +64,11 @@ void LineFollower::loop()
 void LineFollower::setLineToFollow(uint8_t index)
 {
     this->followingEdgeNum = index;
+}
+
+uint8_t LineFollower::getLineToFollow()
+{
+    return this->followingEdgeNum;
 }
 
 void LineFollower::setMode(LineFollowMode mode)
