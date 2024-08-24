@@ -4,8 +4,8 @@
 #include "Servo.h"
 #include "Arduino.h"
 
-#define RED_CAR
-// #define BLUE_CAR
+// #define RED_CAR
+#define BLUE_CAR
 
 #define PAPER
 // #define WOOD
@@ -133,6 +133,7 @@ void setup()
 { // middle: 66, right: 109, left: 19
     debug = new WifiDebug();
     debug->setOnMessage(onWifiMessage);
+    Serial.begin(115200);
 
     /* RPC */
     Serial1.begin(115200);
@@ -140,6 +141,7 @@ void setup()
     mgr = new RpcManager(Serial1, rootClass);
     ((RpcRootMember *)rootClass->getMember("dc"))->updateValue(&dc);
     ((RpcRootMember *)rootClass->getMember("stop"))->updateValue(&stop);
+    Serial.println("RPC init");
     /* /RPC */
 
     profile.setMotorCurve(const_cast<int16_t *>(rpmLut), MOTOR_CURVE_TYPE_PROGMEM);
@@ -151,7 +153,6 @@ void setup()
 
     dc.setSimpleMode(true);
 #endif
-    Serial.begin(115200);
     Serial.println("Started");
     dc.setAngle(0);
 
@@ -169,6 +170,7 @@ unsigned long lastFrontContact = 0;
 void loop()
 {
     SerialDebug_loop(dc, sensor, ld);
+    mgr->loop();
 
     dc.loop();
 
@@ -205,23 +207,24 @@ void loop()
     {
 // lineFollowing(dc, ld, frontDistance, rearDistance);
 #if defined(RED_CAR)
-        if (dc.getState() != DRIVE_CONTROLLER_STATE_PAUSED) {
-        unsigned long timeSinceLast = millis() - lastFrontContact;
-        if ((lastFrontContact == 0 || timeSinceLast > 3000) && frontDistance.getDistanceToClosestMm() < 200)
+        if (dc.getState() != DRIVE_CONTROLLER_STATE_PAUSED)
         {
-            Serial.println("Switching line to left");
-            lastFrontContact = millis();
-            follower.setLineToFollow(0);
-        }
-        else
-        {
-            if (lastFrontContact > 0 && timeSinceLast > 5500)
+            unsigned long timeSinceLast = millis() - lastFrontContact;
+            if ((lastFrontContact == 0 || timeSinceLast > 3000) && frontDistance.getDistanceToClosestMm() < 200)
             {
-                Serial.println("Switching line back right");
-                follower.setLineToFollow(1);
-                lastFrontContact = 0;
+                Serial.println("Switching line to left");
+                lastFrontContact = millis();
+                follower.setLineToFollow(0);
             }
-        }
+            else
+            {
+                if (lastFrontContact > 0 && timeSinceLast > 5500)
+                {
+                    Serial.println("Switching line back right");
+                    follower.setLineToFollow(1);
+                    lastFrontContact = 0;
+                }
+            }
         }
 #endif
         follower.loop();
