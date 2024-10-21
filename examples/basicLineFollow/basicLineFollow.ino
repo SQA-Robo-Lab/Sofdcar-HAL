@@ -7,8 +7,8 @@
 // #define RED_CAR
 #define BLUE_CAR
 
-#define PAPER
-// #define WOOD
+// #define PAPER
+#define WOOD
 
 #include "SerialDebug.hpp"
 #include "WifiDebug.hpp"
@@ -62,8 +62,8 @@ ServoAxle serv(52, 40, 40, 47, 73, 98); // red car
 #elif defined(BLUE_CAR)
 ServoAxle serv(52, 40, 39, 29, 66, 102); // blue car
 #endif
-MotorDcHBridge rearLeft(MOTOR_SPEED_UNIT_CM_PER_SEC, 8, 9, 10);
-MotorDcHBridge rearRight(MOTOR_SPEED_UNIT_CM_PER_SEC, 13, 12, 11);
+MotorDcHBridge rearLeft(MOTOR_SPEED_UNIT_CM_PER_SEC, 13, 12, 11);
+MotorDcHBridge rearRight(MOTOR_SPEED_UNIT_CM_PER_SEC, 8, 9, 10);
 TurnSteeringDriveController dc(
     rearLeft,
     rearRight,
@@ -73,7 +73,7 @@ TurnSteeringDriveController dc(
 BrightnessSensorAnalog sensor(pins, 3, thresholds);
 LinearSensorEdgeDetector ld(sensor, 16, false);
 UltrasonicDistanceSensor frontDistance(48, 49);
-UltrasonicDistanceSensor &rearDistance = frontDistance;
+UltrasonicDistanceSensor rearDistance(46, 47);
 #elif defined(MEGA_FIXED_CAR)
 BrightnessThresholds thresholds[] = {
     {684, 97},
@@ -205,7 +205,10 @@ void loop()
 
     if (!isManualMode)
     {
-// lineFollowing(dc, ld, frontDistance, rearDistance);
+        // lineFollowing(dc, ld, frontDistance, rearDistance);
+        uint16_t dR = rearDistance.getDistanceToClosestMm();
+        Serial.print("Rear distance: ");
+        Serial.println(dR);
 #if defined(RED_CAR)
         if (dc.getState() != DRIVE_CONTROLLER_STATE_PAUSED)
         {
